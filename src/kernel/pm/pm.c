@@ -116,7 +116,7 @@ PUBLIC void pm_init(void)
 	IDLE->state = PROC_RUNNING;
 	IDLE->counter = PROC_QUANTUM;
 	IDLE->priority = PRIO_USER;
-	IDLE->nice = NZERO;
+	IDLE->nice = 2*NZERO - 1; //Nice's value reserved for IDLE
 	IDLE->alarm = 0;
 	IDLE->next = NULL;
 	IDLE->chain = NULL;

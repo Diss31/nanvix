@@ -36,8 +36,8 @@ PUBLIC int sys_nice(int incr)
 	/* Do not exceed boundaries. */
 	if (curr_proc->nice < 0)
 		curr_proc->nice = 0;
-	else if (curr_proc->nice >= 2*NZERO)
-		curr_proc->nice = 2*NZERO - 1;
+	else if (curr_proc->nice >= 2*NZERO - 1) //Modification to assure that IDLE will always be the lest priority process
+		curr_proc->nice = 2*NZERO - 2;
 	
 	return (curr_proc->nice);
 }
