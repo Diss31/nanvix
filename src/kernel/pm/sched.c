@@ -60,54 +60,20 @@ PUBLIC void resume(struct process *proc)
 }
 
 /**
- * @ Intern function which manages priority
+ * @brief Intern function which compares priorities. If there is a tie, q is return
  */
 
-PRIVATE struct process* next_process_manager(){
-	struct process *p; /* Current process. */
-	struct process *next; /* Next process to run. */
+PRIVATE struct process* comp_priorities(struct process* p , struct process* q){
+	/*If q is less priority than p, we pick p and we increase q->counter */
+	if ((p->priority < q->priority)||((p->priority == q->priority)&&(p->nice < q->nice))||((p->priority == q->priority)&&(p->nice == q->nice)&&(p->counter > q->counter))){
+		q->counter++;
+		return p;
 
-	next = IDLE;
-	for (p = FIRST_PROC; p <= LAST_PROC; p++)
-	{
-		/* Skip non-ready process. */
-		if (p->state != PROC_READY)
-			continue;
-
-		/* Compare the field priority and after, the field nice. */
-
-		/*If the next process is less priority than the current one, we choose the current one */
-		if ((p->priority < next->priority)||((p->priority == next->priority)&&(p->nice < next->nice))){
-			next->counter++;
-			next = p;
-			continue;
-
-		/*Else, we keep the next process. */
-		}else if((p->priority > next->priority)||((p->priority == next->priority)&&(p->nice > next->nice))){
-			p->counter++;
-			continue;
-		}
-
-		/*If they are the same priority :*/
-		
-		/*
-		 * Process with higher
-		 * waiting time found.
-		 */
-		if (p->counter > next->counter)
-		{
-			next->counter++;
-			next = p;
-		}
-			
-		/*
-		 * Increment waiting
-		 * time of process.
-		 */
-		else
-			p->counter++;
+		/*Else, we pick q and increase p->counter. */
+	}else {
+		p->counter++;
+		return q;
 	}
-	return next;
 }
 
 /**
@@ -138,7 +104,17 @@ PUBLIC void yield(void)
 	}
 
 	/* Choose a process to run next. */
-	next = next_process_manager();
+	next = IDLE;
+	for (p = FIRST_PROC; p <= LAST_PROC; p++)
+	{
+		/* Skip non-ready process. */
+		if (p->state != PROC_READY)
+			continue;
+
+		/* Compare the priorities field of next and p and update the reliable counter. */
+		next = comp_priorities(p,next);
+
+	}
 	
 	/* Switch to next process. */
 	next->priority = PRIO_USER;
