@@ -60,6 +60,57 @@ PUBLIC void resume(struct process *proc)
 }
 
 /**
+ * @ Intern function which manages priority
+ */
+
+PRIVATE struct process* next_process_manager(){
+	struct process *p; /* Current process. */
+	struct process *next; /* Next process to run. */
+
+	next = IDLE;
+	for (p = FIRST_PROC; p <= LAST_PROC; p++)
+	{
+		/* Skip non-ready process. */
+		if (p->state != PROC_READY)
+			continue;
+
+		/* Compare the field priority and after, the field nice. */
+
+		/*If the next process is less priority than the current one, we choose the current one */
+		if ((p->priority < next->priority)||((p->priority == next->priority)&&(p->nice < next->nice))){
+			next->counter++;
+			next = p;
+			continue;
+
+		/*Else, we keep the next process. */
+		}else if((p->priority > next->priority)||((p->priority == next->priority)&&(p->nice > next->nice))){
+			p->counter++;
+			continue;
+		}
+
+		/*If they are the same priority :*/
+		
+		/*
+		 * Process with higher
+		 * waiting time found.
+		 */
+		if (p->counter > next->counter)
+		{
+			next->counter++;
+			next = p;
+		}
+			
+		/*
+		 * Increment waiting
+		 * time of process.
+		 */
+		else
+			p->counter++;
+	}
+	return next;
+}
+
+/**
  * @brief Yields the processor.
  */
 PUBLIC void yield(void)
@@ -87,30 +138,7 @@ PUBLIC void yield(void)
 	}
 
 	/* Choose a process to run next. */
-	next = IDLE;
-	for (p = FIRST_PROC; p <= LAST_PROC; p++)
-	{
-		/* Skip non-ready process. */
-		if (p->state != PROC_READY)
-			continue;
-		
-		/*
-		 * Process with higher
-		 * waiting time found.
-		 */
-		if (p->counter > next->counter)
-		{
-			next->counter++;
-			next = p;
-		}
-			
-		/*
-		 * Increment waiting
-		 * time of process.
-		 */
-		else
-			p->counter++;
-	}
+	next = next_process_manager();
 	
 	/* Switch to next process. */
 	next->priority = PRIO_USER;
