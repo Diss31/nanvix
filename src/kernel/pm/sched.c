@@ -60,7 +60,8 @@ PUBLIC void resume(struct process *proc)
 }
 
 /**
- * @brief Intern function which compares priorities. If there is a tie, q is return
+ * @brief Compare the priorities
+ * @details Intern function which compares priorities between 2 process. If there is a tie, the second is return
  */
 
 PRIVATE struct process* comp_priorities(struct process* p , struct process* q){

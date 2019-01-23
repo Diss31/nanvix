@@ -63,7 +63,7 @@ static int swap_test(void)
 		goto error1;
 	if ((c = malloc(N*N*sizeof(int))) == NULL)
 		goto error2;
-		
+
 	t0 = times(&timing);
 	
 	/* Initialize matrices. */
@@ -81,7 +81,7 @@ static int swap_test(void)
 		{
 			for (int j = 0; j < N; j++)
 			{
-					
+
 				for (int k = 0; k < N; k++)
 					c[i*N + j] += a[i*N + k]*b[k*N + j];
 			}
@@ -111,13 +111,13 @@ static int swap_test(void)
 	
 	return (0);
 
-error3:
+	error3:
 	free(c);
-error2:
+	error2:
 	free(b);
-error1:
+	error1:
 	free(a);
-error0:
+	error0:
 	return (-1);
 }
 
@@ -181,7 +181,7 @@ static void work_cpu(void)
 	int c;
 	
 	c = 0;
-		
+
 	/* Perform some computation. */
 	for (int i = 0; i < 4096; i++)
 	{
@@ -259,7 +259,7 @@ static int sched_test0(void)
 static int sched_test1(void)
 {
 	pid_t pid;
-		
+
 	pid = fork();
 	
 	/* Failed to fork(). */
@@ -280,14 +280,14 @@ static int sched_test1(void)
 		work_io();
 		_exit(EXIT_SUCCESS);
 	}
-		
+
 	wait(NULL);
 	
 	return (0);
 }
 
 /**
- * @brief Scheduling test 1.
+ * @brief Scheduling test 2.
  * 
  * @details Spawns several processes and stresses the scheduler.
  * 
@@ -300,7 +300,7 @@ static int sched_test2(void)
 	for (int i = 0; i < 4; i++)
 	{
 		pid[i] = fork();
-	
+
 		/* Failed to fork(). */
 		if (pid[i] < 0)
 			return (-1);
@@ -328,7 +328,7 @@ static int sched_test2(void)
 	{
 		if (i & 1)
 			wait(NULL);
-			
+
 		else
 		{	
 			kill(pid[i], SIGCONT);
@@ -361,12 +361,57 @@ static int sched_test3(void)
 	/* Wait for children. */
 	while ((child = wait(NULL)) >= 0)
 		/* noop. */;
-	
-	/* Die. */
-	if (getpid() != father)
-		_exit(EXIT_SUCCESS);
 
-	return (0);
+	/* Die. */
+		if (getpid() != father)
+			_exit(EXIT_SUCCESS);
+
+		return (0);
+	}
+
+/**
+ * @brief Scheduling test 4.
+ * 
+ * @details Spawn several process with different priorities and monitor if the execution's order is right
+ * 
+ * @returns Zero if passed on test, and non-zero otherwise.
+ */
+	static int sched_test4(void){
+	
+	nice(-1); // Father nice = 19
+
+	int tab[5];
+
+	for(int i=0;i<5;i++){
+
+		int pid = fork();
+
+		/* Failed to fork(). */
+		if (pid < 0)
+			return (-1);
+
+		/* Child process. */
+		else if (pid == 0)
+		{
+			nice(i); // Child nice = 20 21 22 23 24
+			work_cpu();
+			_exit(EXIT_SUCCESS);
+		} else{ /* Father process. */
+			tab[i]=pid;
+		}
+
+	}
+
+	for(int i=0;i<5;i++){
+
+		if(waitpid(tab[i],NULL,0)<0){
+			return -1;
+		}
+
+	}
+
+
+	return 0;
 }
 
 /*============================================================================*
@@ -442,7 +487,7 @@ int semaphore_test3(void)
 	SEM_CREATE(mutex, 1);
 	SEM_CREATE(empty, 2);
 	SEM_CREATE(full, 3);
-		
+
 	/* Initialize semaphores. */
 	SEM_INIT(full, 0);
 	SEM_INIT(empty, BUFFER_SIZE);
@@ -460,7 +505,7 @@ int semaphore_test3(void)
 			SEM_DOWN(mutex);
 			
 			PUT_ITEM(buffer_fd, item);
-				
+
 			SEM_UP(mutex);
 			SEM_UP(full);
 		}
@@ -479,12 +524,12 @@ int semaphore_test3(void)
 			SEM_DOWN(mutex);
 			
 			GET_ITEM(buffer_fd, item);
-				
+
 			SEM_UP(mutex);
 			SEM_UP(empty);
 		} while (item != (NR_ITEMS - 1));
 	}
-					
+
 	/* Destroy semaphores. */
 	SEM_DESTROY(mutex);
 	SEM_DESTROY(empty);
@@ -554,7 +599,7 @@ int fpu_test(void)
 		"fdivrp %%st,%%st(1);"
 		: /* noop. */
 		: "m" (b), "m" (a)
-	);
+		);
 
 	pid = fork();
 	
@@ -580,7 +625,7 @@ int fpu_test(void)
 	__asm__ volatile(
 		"fstps %0;"
 		: "=m" (result)
-	);
+		);
 
 	/* 0x40b2aaaa = 6.7/1.2 = 5.5833.. */
 	return (result == 0x40b2aaaa);
@@ -647,6 +692,8 @@ int main(int argc, char **argv)
 				(!sched_test1()) ? "PASSED" : "FAILED");
 			printf("  scheduler stress   [%s]\n",
 				(!sched_test2() && !sched_test3()) ? "PASSED" : "FAILED");
+			printf("  dynamic priorities [%s]\n",
+				(!sched_test4()) ? "PASSED" : "FAILED");
 		}
 		
 		/* IPC test. */
@@ -664,8 +711,8 @@ int main(int argc, char **argv)
 			printf("  Result [%s]\n",
 				(!fpu_test()) ? "PASSED" : "FAILED");
 		}
-	
-	
+
+
 		/* Wrong usage. */
 		else
 			usage();
