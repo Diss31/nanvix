@@ -60,11 +60,20 @@ PUBLIC void resume(struct process *proc)
 }
 
 /**
- * @brief Intern function which creates our own priority based on the priority, nice and counter fields. The aim is to run first the process with the highest priority, so with the lowest combinaison of these three fields.
+ * @brief Intern function which compares priorities. If there is a tie, q is return
  */
 
-PUBLIC int give_priority(struct process* p){
-	return (p->priority + p->nice - p->counter); /* Since priority and nice are higher when they are negative, and counter is higher when it's the highest positive value possible, then we add priority and nice and substract counter. */
+PRIVATE struct process* comp_priorities(struct process* p , struct process* q){
+	/*If q is less priority than p, we pick p and we increase q->counter */
+	if ((p->priority < q->priority)||((p->priority == q->priority)&&(p->nice < q->nice))||((p->priority == q->priority)&&(p->nice == q->nice)&&(p->counter > q->counter))){
+		q->counter++;
+		return p;
+
+		/*Else, we pick q and increase p->counter. */
+	}else {
+		p->counter++;
+		return q;
+	}
 }
 
 /**
@@ -102,18 +111,9 @@ PUBLIC void yield(void)
 		if (p->state != PROC_READY)
 			continue;
 
-		/* Gets the customized priorities of next and p */
-		int prio_next = give_priority(next);
-		int prio_p = give_priority(p);
+		/* Compare the priorities field of next and p and update the reliable counter. */
+		next = comp_priorities(p,next);
 
-		/* Compare the customized priorities of next and p and update counters accordingly. If p has a higher priority, it'll be run next */
-		if(prio_p<prio_next){
-			next->counter++;
-			next=p;
-		}
-		else{
-			p->counter++;
-		}
 	}
 	
 	/* Switch to next process. */
