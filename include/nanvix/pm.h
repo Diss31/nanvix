@@ -53,6 +53,8 @@
 	#define INIT (&proctab[1]) /**< init process. */
 	/**@}*/
 	
+	#define SIZE_TAB_TICKET PROC_MAX*8
+	
 	/**
 	 * @name Process table boundaries
 	 */
@@ -201,6 +203,7 @@
     	int counter;             /**< Remaining quantum.      */
     	int priority;            /**< Process priorities.     */
     	int nice;                /**< Nice for scheduling.    */
+    	int tab_tickets[8];		 /**< Tickets array for lotery scheduling */
     	unsigned alarm;          /**< Alarm.                  */
 		struct process *next;    /**< Next process in a list. */
 		struct process **chain;  /**< Sleeping chain.         */

@@ -23,6 +23,9 @@
 #include <nanvix/hal.h>
 #include <nanvix/pm.h>
 #include <signal.h>
+#include <nanvix/klib.h>
+
+int num_ticket=0;
 
 /**
  * @brief Schedules a process to execution.
@@ -33,6 +36,32 @@ PUBLIC void sched(struct process *proc)
 {
 	proc->state = PROC_READY;
 	proc->counter = 0;
+}
+
+PUBLIC int nb_ticket(int priority){
+	int tickets=0;
+	switch(priority){
+		case PRIO_IO : 			tickets = 8; break;
+		case PRIO_BUFFER : 		tickets = 7; break;
+		case PRIO_INODE : 		tickets = 6; break;
+		case PRIO_SUPERBLOCK : 	tickets = 5; break;
+		case PRIO_REGION :		tickets = 4; break;
+		case PRIO_TTY : 		tickets = 3; break;
+		case PRIO_SIG : 		tickets = 2; break;
+		case PRIO_USER : 		tickets = 1; break;
+	}
+	return tickets;
+}
+
+PUBLIC void add_ticket(struct process* p){
+	int nb_tickets = nb_ticket(p->priority) ;
+  	int cpt =0;
+	while(cpt < SIZE_TAB_TICKET && nb_tickets > 0){
+    	p->tab_tickets[cpt]=num_ticket;
+    	num_ticket++;
+    	cpt++;  
+    	nb_tickets--;
+	}
 }
 
 /**
@@ -60,25 +89,14 @@ PUBLIC void resume(struct process *proc)
 }
 
 /**
- * @brief Intern function which compares priorities. If there is a tie, q is return
- */
-
-PRIVATE struct process* comp_priorities(struct process* p , struct process* q){
-	/*If q is less priority than p, we pick p and we increase q->counter */
-	if ((p->priority < q->priority)||((p->priority == q->priority)&&(p->nice < q->nice))||((p->priority == q->priority)&&(p->nice == q->nice)&&(p->counter > q->counter))){
-		q->counter++;
-		return p;
-
-		/*Else, we pick q and increase p->counter. */
-	}else {
-		p->counter++;
-		return q;
-	}
-}
-
-/**
  * @brief Yields the processor.
  */
+
+PUBLIC int draw_ticket(void){
+	return krand()%(num_ticket);
+}
+
+
 PUBLIC void yield(void)
 {
 	struct process *p;    /* Working process.     */
@@ -101,6 +119,8 @@ PUBLIC void yield(void)
 		/* Alarm has expired. */
 		if ((p->alarm) && (p->alarm < ticks))
 			p->alarm = 0, sndsig(p, SIGALRM);
+
+		add_ticket(p);
 	}
 
 	/* Choose a process to run next. */
@@ -111,9 +131,14 @@ PUBLIC void yield(void)
 		if (p->state != PROC_READY)
 			continue;
 
-		/* Compare the priorities field of next and p and update the reliable counter. */
-		next = comp_priorities(p,next);
+		int ticket_selected = draw_ticket();
 
+		for(int i=0;i<8;i++){
+			if(p->tab_tickets[i]==ticket_selected){
+				next=p;
+				break;
+			}
+		}
 	}
 	
 	/* Switch to next process. */
