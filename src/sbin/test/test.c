@@ -408,10 +408,10 @@ static int sched_test4(void){
 		}
 	}
 
-	// Child nice in the tab = NZERO-3 NZERO-2 NZERO-1 NZERO(1) NZERO(2)
+	// Child nice in the tab = 2*NZERO-5 2*NZERO-4 2*NZERO-3 2*NZERO-2(1) 2*NZERO-2(2)
 
 	pid_t child;
-	for(int i=0;i<3;i++){ //children NZERO-3 NZERO-2 and NZERO-1
+	for(int i=0;i<3;i++){ //children 2*NZERO-5 2*NZERO-4 2*NZERO-3
 		child = wait(NULL);
 		if(child==-1){
 			return -1;
@@ -421,7 +421,7 @@ static int sched_test4(void){
 		}
 	}
 	
-	child = wait(NULL); //child NZERO(2)
+	child = wait(NULL); //child 2*NZERO-2(2)
 	if(child==-1){
 		return -1;
 	}
@@ -429,7 +429,7 @@ static int sched_test4(void){
 		return -1;
 	}
 
-	child = wait(NULL); //child NZERO(1)
+	child = wait(NULL); //child 2*NZERO-2(1)
 	if(child==-1){
 		return -1;
 	}
