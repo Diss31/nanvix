@@ -30,13 +30,13 @@ PUBLIC int sys_nice(int incr)
 	/* Not authorized. */
 	if ((incr < 0) && !IS_SUPERUSER(curr_proc))
 		return (-EPERM);
-	
+
 	curr_proc->nice += incr;
 	
 	/* Do not exceed boundaries. */
 	if (curr_proc->nice < 0)
 		curr_proc->nice = 0;
-	else if (curr_proc->nice >= 2*NZERO - 1) //Modification to assure that IDLE will always be the lest priority process
+	else if (curr_proc->nice >= 2*NZERO - 1) //Nice'value can not be egal or higher that IDLE's nice
 		curr_proc->nice = 2*NZERO - 2;
 	
 	return (curr_proc->nice);

@@ -150,7 +150,8 @@ found:
 	proc->cutime = 0;
 	proc->cktime = 0;
 	proc->priority = curr_proc->priority;
-	proc->nice = curr_proc->nice;
+	//Ternary expression to prevent childrens of IDLE to have IDLE's nice value
+	proc->nice = (curr_proc->nice==2*NZERO - 1?NZERO:curr_proc->nice);
 	proc->alarm = 0;
 	proc->next = NULL;
 	proc->chain = NULL;
