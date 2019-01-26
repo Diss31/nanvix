@@ -63,7 +63,7 @@ static int swap_test(void)
 		goto error1;
 	if ((c = malloc(N*N*sizeof(int))) == NULL)
 		goto error2;
-		
+
 	t0 = times(&timing);
 	
 	/* Initialize matrices. */
@@ -81,7 +81,7 @@ static int swap_test(void)
 		{
 			for (int j = 0; j < N; j++)
 			{
-					
+
 				for (int k = 0; k < N; k++)
 					c[i*N + j] += a[i*N + k]*b[k*N + j];
 			}
@@ -111,13 +111,13 @@ static int swap_test(void)
 	
 	return (0);
 
-error3:
+	error3:
 	free(c);
-error2:
+	error2:
 	free(b);
-error1:
+	error1:
 	free(a);
-error0:
+	error0:
 	return (-1);
 }
 
@@ -181,7 +181,7 @@ static void work_cpu(void)
 	int c;
 	
 	c = 0;
-		
+
 	/* Perform some computation. */
 	for (int i = 0; i < 4096; i++)
 	{
@@ -202,19 +202,19 @@ static void work_io(void)
 {
 	int fd;            /* File descriptor. */
 	char buffer[2048]; /* Buffer.          */
-	
+
 	/* Open hdd. */
 	fd = open("/dev/hdd", O_RDONLY);
 	if (fd < 0)
 		_exit(EXIT_FAILURE);
-	
+
 	/* Read data. */
 	for (size_t i = 0; i < MEMORY_SIZE; i += sizeof(buffer))
 	{
 		if (read(fd, buffer, sizeof(buffer)) < 0)
 			_exit(EXIT_FAILURE);
 	}
-	
+
 	/* House keeping. */
 	close(fd);
 }
@@ -229,22 +229,22 @@ static void work_io(void)
 static int sched_test0(void)
 {
 	pid_t pid;
-	
+
 	pid = fork();
-	
+
 	/* Failed to fork(). */
 	if (pid < 0)
 		return (-1);
-	
+
 	/* Child process. */
 	else if (pid == 0)
 	{
 		work_cpu();
 		_exit(EXIT_SUCCESS);
 	}
-	
+
 	wait(NULL);
-	
+
 	return (0);
 }
 
@@ -259,20 +259,20 @@ static int sched_test0(void)
 static int sched_test1(void)
 {
 	pid_t pid;
-		
+
 	pid = fork();
-	
+
 	/* Failed to fork(). */
 	if (pid < 0)
 		return (-1);
-	
+
 	/* Parent process. */
 	else if (pid > 0)
 	{
 		nice(-2*NZERO);
 		work_cpu();
 	}
-	
+
 	/* Child process. */
 	else
 	{
@@ -280,31 +280,32 @@ static int sched_test1(void)
 		work_io();
 		_exit(EXIT_SUCCESS);
 	}
-		
+
 	wait(NULL);
-	
+
 	return (0);
 }
 
 /**
- * @brief Scheduling test 1.
+ * @brief Scheduling test 2.
  * 
  * @details Spawns several processes and stresses the scheduler.
  * 
  * @returns Zero if passed on test, and non-zero otherwise.
  */
+
 static int sched_test2(void)
 {
 	pid_t pid[4];
-	
+
 	for (int i = 0; i < 4; i++)
 	{
 		pid[i] = fork();
-	
+
 		/* Failed to fork(). */
 		if (pid[i] < 0)
 			return (-1);
-		
+
 		/* Child process. */
 		else if (pid[i] == 0)
 		{
@@ -314,7 +315,7 @@ static int sched_test2(void)
 				work_cpu();
 				_exit(EXIT_SUCCESS);
 			}
-			
+
 			else
 			{	
 				nice(-2*NZERO);
@@ -323,19 +324,19 @@ static int sched_test2(void)
 			}
 		}
 	}
-	
+
 	for (int i = 0; i < 4; i++)
 	{
 		if (i & 1)
 			wait(NULL);
-			
+
 		else
 		{	
 			kill(pid[i], SIGCONT);
 			wait(NULL);
 		}
 	}
-	
+
 	return (0);
 }
 
@@ -361,12 +362,86 @@ static int sched_test3(void)
 	/* Wait for children. */
 	while ((child = wait(NULL)) >= 0)
 		/* noop. */;
-	
-	/* Die. */
-	if (getpid() != father)
-		_exit(EXIT_SUCCESS);
 
-	return (0);
+	/* Die. */
+		if (getpid() != father)
+			_exit(EXIT_SUCCESS);
+
+		return (0);
+	}
+
+/**
+ * @brief Scheduling test 4.
+ * 
+ * @details Spawn several process with different nice values and monitor if the execution's order is right
+ * 
+ * @returns Zero if passed on test, and non-zero otherwise.
+ */
+static int sched_test4(void){
+	
+	int father_nice =nice(2*NZERO);
+	father_nice = nice(-NZERO);
+	printf("%d\n",father_nice );
+	if(father_nice!=19){ // Father nice = NZERO - 1
+		return -2;
+	} 
+
+	int tab[5];
+
+	for(int i=4;i>=0;i--){ // We begin with the most important value of nice
+
+		int pid = fork();
+
+		/* Failed to fork(). */
+		if (pid < 0)
+			return (-1);
+
+		/* Child process. */
+		else if (pid == 0)
+		{
+			printf("%d\n",nice(i+NZERO - 3));
+			work_cpu();
+			_exit(EXIT_SUCCESS);
+
+		/* Father process. */
+		}else{
+			tab[i]=pid;
+		}
+	}
+
+	// Child nice in the tab = 2*NZERO-4 2*NZERO-3 2*NZERO-2 2*NZERO-1(1) 2*NZERO-1(2)
+
+	pid_t child;
+	for(int i=0;i<3;i++){ //children 2*NZERO-4 2*NZERO-3 2*NZERO-2
+		child = wait(NULL);
+		if(child==-1){
+			return -1;
+		}
+		if(tab[i]!=child){
+			printf("test1\n");
+			return -1;
+		}
+	}
+	
+	child = wait(NULL); //child 2*NZERO-2 2*NZERO-1(2)
+	if(child==-1){
+		return -1;
+	}
+	if(tab[4]!=child){
+		printf("test2\n");
+		return -1;
+	}
+
+	child = wait(NULL); //child 2*NZERO-2 2*NZERO-1(1)
+	if(child==-1){
+		return -1;
+	}
+	if(tab[3]!=child){
+		printf("test3\n");
+		return -1;
+	}
+
+	return 0;
 }
 
 /*============================================================================*
@@ -442,7 +517,7 @@ int semaphore_test3(void)
 	SEM_CREATE(mutex, 1);
 	SEM_CREATE(empty, 2);
 	SEM_CREATE(full, 3);
-		
+
 	/* Initialize semaphores. */
 	SEM_INIT(full, 0);
 	SEM_INIT(empty, BUFFER_SIZE);
@@ -460,7 +535,7 @@ int semaphore_test3(void)
 			SEM_DOWN(mutex);
 			
 			PUT_ITEM(buffer_fd, item);
-				
+
 			SEM_UP(mutex);
 			SEM_UP(full);
 		}
@@ -479,12 +554,12 @@ int semaphore_test3(void)
 			SEM_DOWN(mutex);
 			
 			GET_ITEM(buffer_fd, item);
-				
+
 			SEM_UP(mutex);
 			SEM_UP(empty);
 		} while (item != (NR_ITEMS - 1));
 	}
-					
+
 	/* Destroy semaphores. */
 	SEM_DESTROY(mutex);
 	SEM_DESTROY(empty);
@@ -554,7 +629,7 @@ int fpu_test(void)
 		"fdivrp %%st,%%st(1);"
 		: /* noop. */
 		: "m" (b), "m" (a)
-	);
+		);
 
 	pid = fork();
 	
@@ -580,7 +655,7 @@ int fpu_test(void)
 	__asm__ volatile(
 		"fstps %0;"
 		: "=m" (result)
-	);
+		);
 
 	/* 0x40b2aaaa = 6.7/1.2 = 5.5833.. */
 	return (result == 0x40b2aaaa);
@@ -647,6 +722,8 @@ int main(int argc, char **argv)
 				(!sched_test1()) ? "PASSED" : "FAILED");
 			printf("  scheduler stress   [%s]\n",
 				(!sched_test2() && !sched_test3()) ? "PASSED" : "FAILED");
+			printf("  nice ordering test [%s]\n",
+				(!sched_test4()) ? "PASSED" : "FAILED");
 		}
 		
 		/* IPC test. */
@@ -664,8 +741,8 @@ int main(int argc, char **argv)
 			printf("  Result [%s]\n",
 				(!fpu_test()) ? "PASSED" : "FAILED");
 		}
-	
-	
+
+
 		/* Wrong usage. */
 		else
 			usage();
