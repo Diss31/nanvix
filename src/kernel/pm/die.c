@@ -39,7 +39,7 @@ PUBLIC void die(int status)
 {
 	struct process *p;
 	
-	/* Shall not occour. */
+	/* Shall not occur. */
 	if (curr_proc == IDLE)
 		kpanic("idle process dying");
 	
@@ -107,7 +107,11 @@ PUBLIC void die(int status)
 	curr_proc->alarm = 0;
 	
 	sndsig(curr_proc->father, SIGCHLD);
-	
+
+	rm_tickets(curr_proc);
+
+	regroup_tickets();
+
 	yield();
 }
 

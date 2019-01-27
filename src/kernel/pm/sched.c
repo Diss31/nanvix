@@ -38,32 +38,6 @@ PUBLIC void sched(struct process *proc)
 	proc->counter = 0;
 }
 
-PUBLIC int nb_ticket(int priority){
-	int tickets=0;
-	switch(priority){
-		case PRIO_IO : 			tickets = 8; break;
-		case PRIO_BUFFER : 		tickets = 7; break;
-		case PRIO_INODE : 		tickets = 6; break;
-		case PRIO_SUPERBLOCK : 	tickets = 5; break;
-		case PRIO_REGION :		tickets = 4; break;
-		case PRIO_TTY : 		tickets = 3; break;
-		case PRIO_SIG : 		tickets = 2; break;
-		case PRIO_USER : 		tickets = 1; break;
-	}
-	return tickets;
-}
-
-PUBLIC void add_ticket(struct process* p){
-	int nb_tickets = nb_ticket(p->priority) ;
-  	int cpt =0;
-	while(cpt < SIZE_TAB_TICKET && nb_tickets > 0){
-    	p->tab_tickets[cpt]=num_ticket;
-    	num_ticket++;
-    	cpt++;  
-    	nb_tickets--;
-	}
-}
-
 /**
  * @brief Stops the current running process.
  */
@@ -93,7 +67,7 @@ PUBLIC void resume(struct process *proc)
  */
 
 PUBLIC int draw_ticket(void){
-	return krand()%(num_ticket);
+	return krand()%(nb_total_tickets);
 }
 
 
@@ -120,25 +94,26 @@ PUBLIC void yield(void)
 		if ((p->alarm) && (p->alarm < ticks))
 			p->alarm = 0, sndsig(p, SIGALRM);
 
-		add_ticket(p);
 	}
 
 	/* Choose a process to run next. */
 	next = IDLE;
-	for (p = FIRST_PROC; p <= LAST_PROC; p++)
-	{
+	for (p = FIRST_PROC; p <= LAST_PROC; p++){
+	
 		/* Skip non-ready process. */
 		if (p->state != PROC_READY)
 			continue;
 
-		int ticket_selected = draw_ticket();
+		//int ticket_selected = draw_ticket();
 
-		for(int i=0;i<8;i++){
-			if(p->tab_tickets[i]==ticket_selected){
-				next=p;
-				break;
-			}
+		if(p->counter > next->counter){
+			next->counter++;
+			next=p;
 		}
+
+		else
+			p->counter++;
+		
 	}
 	
 	/* Switch to next process. */

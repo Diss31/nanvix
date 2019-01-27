@@ -203,12 +203,23 @@
     	int counter;             /**< Remaining quantum.      */
     	int priority;            /**< Process priorities.     */
     	int nice;                /**< Nice for scheduling.    */
-    	int tab_tickets[8];		 /**< Tickets array for lotery scheduling */
     	unsigned alarm;          /**< Alarm.                  */
 		struct process *next;    /**< Next process in a list. */
 		struct process **chain;  /**< Sleeping chain.         */
 		/**@}*/
 	};
+
+	#define TAB_SIZE PROC_MAX*8
+
+	EXTERN void add_tickets(struct process* p);
+
+	EXTERN void rm_tickets(struct process* p);
+
+	EXTERN void regroup_tickets();
+
+	PUBLIC int nb_total_tickets;
+
+	PUBLIC struct process* array_tickets[TAB_SIZE];
 	
 	/* Forward definitions. */
 	EXTERN void bury(struct process *);

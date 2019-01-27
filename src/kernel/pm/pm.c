@@ -31,6 +31,11 @@
 #include <signal.h>
 #include <limits.h>
 
+
+PUBLIC int nb_total_tickets;
+
+PUBLIC struct process* array_tickets[TAB_SIZE];
+
 /**
  * @brief Idle process page directory.
  */
@@ -121,7 +126,79 @@ PUBLIC void pm_init(void)
 	IDLE->next = NULL;
 	IDLE->chain = NULL;
 	
+	nb_total_tickets=0;
+
 	nprocs++;
 
 	enable_interrupts();
 }
+
+int num_tickets(int priority){
+	int tickets = 0;
+	switch(priority){
+		case PRIO_IO : 			tickets = 8; break;
+		case PRIO_BUFFER : 		tickets = 7; break;
+		case PRIO_INODE : 		tickets = 6; break;
+		case PRIO_SUPERBLOCK : 	tickets = 5; break;
+		case PRIO_REGION :		tickets = 4; break;
+		case PRIO_TTY : 		tickets = 3; break;
+		case PRIO_SIG : 		tickets = 2; break;
+		case PRIO_USER : 		tickets = 1; break;
+	}
+
+	return tickets;
+}
+
+PUBLIC void add_tickets(struct process* proc){
+	int nb =num_tickets(proc->priority);
+	nb_total_tickets += nb;
+	int i = 0;
+	while(i < TAB_SIZE && nb > 0){
+		if(array_tickets[i] == NULL){
+			array_tickets[i] = proc;
+			nb--;
+		}
+
+		i++;
+	}
+
+}
+
+
+	PUBLIC void regroup_tickets(){
+	int i=0, j=0;
+	while(j < TAB_SIZE && array_tickets[j] != NULL){
+		i++;
+		j++;
+	}
+
+	while(j < TAB_SIZE){
+		while(j < TAB_SIZE && array_tickets[j] == NULL){
+			j++;
+		}
+
+		if(j < TAB_SIZE){
+			array_tickets[i] = array_tickets[j];
+			array_tickets[j] = NULL;
+		}
+
+		while(i < TAB_SIZE && array_tickets[i] != NULL){
+			i++;
+		}	
+	}
+}
+
+
+PUBLIC void rm_ticket(struct process* proc){
+	int nb = num_tickets(proc->priority);
+	nb_total_tickets -= nb;
+	int i = 0;
+	while(i < TAB_SIZE && nb > 0){
+		if(array_tickets[i] == proc){
+			array_tickets[i] = NULL;
+			nb--;
+		}
+
+		i++;
+	}
+	}
