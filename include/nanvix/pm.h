@@ -53,8 +53,6 @@
 	#define INIT (&proctab[1]) /**< init process. */
 	/**@}*/
 	
-	#define SIZE_TAB_TICKET PROC_MAX*8
-	
 	/**
 	 * @name Process table boundaries
 	 */
@@ -202,14 +200,19 @@
     	unsigned state;          /**< Current state.          */
     	int counter;             /**< Remaining quantum.      */
     	int priority;            /**< Process priorities.     */
-    	int nice;                /**< Nice for scheduling.    */
+    	//int nice;                /**< Nice for scheduling.    */
     	unsigned alarm;          /**< Alarm.                  */
 		struct process *next;    /**< Next process in a list. */
 		struct process **chain;  /**< Sleeping chain.         */
 		/**@}*/
 	};
 
+	/**
+	 * @name Max size of the ticket table
+	 */
+	/**@{*/
 	#define TAB_SIZE PROC_MAX*8
+	/**@}*/
 
 	EXTERN void add_tickets(struct process* p);
 

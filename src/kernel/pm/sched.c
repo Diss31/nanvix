@@ -66,7 +66,7 @@ PUBLIC void resume(struct process *proc)
  * @brief Yields the processor.
  */
 
-PUBLIC int draw_ticket(void){
+PRIVATE int draw_ticket(void){
 	return krand()%(nb_total_tickets);
 }
 
@@ -98,15 +98,16 @@ PUBLIC void yield(void)
 
 	/* Choose a process to run next. */
 	next = IDLE;
+	int ticket = draw_ticket();
 	for (p = FIRST_PROC; p <= LAST_PROC; p++){
 	
 		/* Skip non-ready process. */
 		if (p->state != PROC_READY)
 			continue;
 
-		//int ticket_selected = draw_ticket();
 
-		if(p->counter > next->counter){
+
+		if(p->pid == array_tickets[ticket]){
 			next->counter++;
 			next=p;
 		}

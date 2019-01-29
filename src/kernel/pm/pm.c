@@ -31,11 +31,6 @@
 #include <signal.h>
 #include <limits.h>
 
-
-PUBLIC int nb_total_tickets;
-
-PUBLIC struct process* array_tickets[TAB_SIZE];
-
 /**
  * @brief Idle process page directory.
  */
@@ -165,7 +160,7 @@ PUBLIC void add_tickets(struct process* proc){
 }
 
 
-	PUBLIC void regroup_tickets(){
+	PUBLIC void regroup_tickets(){ //a revoir
 	int i=0, j=0;
 	while(j < TAB_SIZE && array_tickets[j] != NULL){
 		i++;
