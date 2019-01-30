@@ -200,7 +200,7 @@
     	unsigned state;          /**< Current state.          */
     	int counter;             /**< Remaining quantum.      */
     	int priority;            /**< Process priorities.     */
-    	//int nice;                /**< Nice for scheduling.    */
+    	int nice;                /**< Nice for scheduling.    */
     	unsigned alarm;          /**< Alarm.                  */
 		struct process *next;    /**< Next process in a list. */
 		struct process **chain;  /**< Sleeping chain.         */
@@ -214,15 +214,24 @@
 	#define TAB_SIZE PROC_MAX*8
 	/**@}*/
 
+	/**
+	 * @name Ticket table, initially empty
+	 */
+	/**@{*/
+		PUBLIC struct pid_t array_tickets[TAB_SIZE]={NULL};
+	/**@}*/
+
+	/**
+	 * @name Number of tickets in the ticket table, initially at 0
+	 */
+	/**@{*/
+		PUBLIC int nb_total_tickets=0;
+	/**@}*/
+
+
+	/* Forward definitions for the tickets. */
 	EXTERN void add_tickets(struct process* p);
-
 	EXTERN void rm_tickets(struct process* p);
-
-	EXTERN void regroup_tickets();
-
-	PUBLIC int nb_total_tickets;
-
-	PUBLIC struct process* array_tickets[TAB_SIZE];
 	
 	/* Forward definitions. */
 	EXTERN void bury(struct process *);

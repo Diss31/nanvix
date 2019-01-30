@@ -77,7 +77,7 @@ PUBLIC void pm_init(void)
 	/* Initialize the process table. */
 	for (p = FIRST_PROC; p <= LAST_PROC; p++)
 		p->flags = 0, p->state = PROC_DEAD;
-		
+
 	/* Handcraft init process. */
 	IDLE->cr3 = (dword_t)idle_pgdir;
 	IDLE->intlvl = 1;
@@ -120,16 +120,17 @@ PUBLIC void pm_init(void)
 	IDLE->alarm = 0;
 	IDLE->next = NULL;
 	IDLE->chain = NULL;
-	
-	nb_total_tickets=0;
 
 	nprocs++;
 
 	enable_interrupts();
 }
 
-int num_tickets(int priority){
-	int tickets = 0;
+/**
+ * @brief Work out the number of tickets allowed to a process according to its priority
+ */
+PRIVATE int num_tickets(int priority){ 
+	int tickets;
 	switch(priority){
 		case PRIO_IO : 			tickets = 8; break;
 		case PRIO_BUFFER : 		tickets = 7; break;
@@ -144,56 +145,46 @@ int num_tickets(int priority){
 	return tickets;
 }
 
+/**
+ * @brief Allow a determinist number of tickets for a process, according to its priority.
+ *
+ * @note There is no verification if the process have already tickets. We allow no ticket for IDLE;
+ */
 PUBLIC void add_tickets(struct process* proc){
-	int nb =num_tickets(proc->priority);
-	nb_total_tickets += nb;
-	int i = 0;
-	while(i < TAB_SIZE && nb > 0){
-		if(array_tickets[i] == NULL){
-			array_tickets[i] = proc;
-			nb--;
-		}
 
-		i++;
+	if(proc->pid==1){ //If the proc is IDLE
+		return; // Make nothing
 	}
 
+	int nb =num_tickets(proc->priority); // Number of tickets allowed
+	for(int i = nb_total_tickets; i < nb_total_tickets + nb;i++){
+		array_tickets[i]=proc->pid; // We add the process pid, nb times in the array_tickets. So all tickets for a process are successive
+	}
+	nb_total_tickets += nb; //We update the total number of tickets
 }
 
-
-	PUBLIC void regroup_tickets(){ //a revoir
-	int i=0, j=0;
-	while(j < TAB_SIZE && array_tickets[j] != NULL){
-		i++;
-		j++;
-	}
-
-	while(j < TAB_SIZE){
-		while(j < TAB_SIZE && array_tickets[j] == NULL){
-			j++;
-		}
-
-		if(j < TAB_SIZE){
-			array_tickets[i] = array_tickets[j];
-			array_tickets[j] = NULL;
-		}
-
-		while(i < TAB_SIZE && array_tickets[i] != NULL){
-			i++;
-		}	
-	}
-}
-
-
+/**
+ * @brief Desallow the tickets of a process.
+ *
+ * @note If the process has no ticket, make nothing.
+ */
 PUBLIC void rm_ticket(struct process* proc){
 	int nb = num_tickets(proc->priority);
-	nb_total_tickets -= nb;
-	int i = 0;
-	while(i < TAB_SIZE && nb > 0){
-		if(array_tickets[i] == proc){
-			array_tickets[i] = NULL;
-			nb--;
-		}
-
+	nb_total_tickets -= nb; // We work out the number of tickets to remove
+	
+	int i=0;
+	while(i < nb_total_tickets && array_tickets[i]!=proc->pid){ //We search where is the group of tickets of proc
 		i++;
 	}
+	
+	if(i == nb_total_tickets){ // If we don't fine it, we make nothing 
+		return;
 	}
+	for(i;i<nb_total_tickets;i++){ // Else, we copy the tickets on the left to crush the tickets to delete
+		array_tickets[i]=array_tickets[i+nb];
+	}
+	
+	for(i;i<i+nb;i++){ // And we delete the last tickets, in case of the tickets to delete are the last ones
+		array_tickets[i]=NULL;
+	}
+}

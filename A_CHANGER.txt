@@ -1,5 +1,4 @@
-- Ajouter des commentaires. PARTOUT 
-- revoir regroup ticket
-- utiliser une table globale de pid (plus leger)
+
 
 - quand est ce qu'un programme perd ses tickets ? (Tout les cas)
+- test v3
