@@ -408,20 +408,25 @@ static int sched_test4(void){
 		}
 	}
 
-	// Child nice in the tab = 2*NZERO-5 2*NZERO-4 2*NZERO-3 2*NZERO-2(1) 2*NZERO-2(2)
+	// Child nice in the tab = 2*NZERO-5 2*NZERO-4 2*NZERO-3 2*NZERO-2(a) 2*NZERO-2(b)
+
+	// The order of the values are: 2*NZERO-5, 2*NZERO-4, 2*NZERO-3, 2*NZERO-2(b), 2*NZERO-2(a)
 
 	pid_t child;
 	for(int i=0;i<3;i++){ //children 2*NZERO-5 2*NZERO-4 2*NZERO-3
 		child = wait(NULL);
+
+		//If there's an error with the wait, the test failed
 		if(child==-1){
 			return -1;
 		}
+		//If the pid in the table isn't the one of the process who's just finished, there's an issue with scheduling and the test failed
 		if(tab[i]!=child){
 			return -1;
 		}
 	}
 	
-	child = wait(NULL); //child 2*NZERO-2(2)
+	child = wait(NULL); //child: 2*NZERO-2(b)
 	if(child==-1){
 		return -1;
 	}
@@ -429,7 +434,7 @@ static int sched_test4(void){
 		return -1;
 	}
 
-	child = wait(NULL); //child 2*NZERO-2(1)
+	child = wait(NULL); //child: 2*NZERO-2(a)
 	if(child==-1){
 		return -1;
 	}
