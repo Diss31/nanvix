@@ -27,7 +27,7 @@
 
 /**
  * @brief Schedules a process to execution.
- * 
+ *
  * @param proc Process to be scheduled.
  */
 PUBLIC void sched(struct process *proc)
@@ -48,13 +48,13 @@ PUBLIC void stop(void)
 
 /**
  * @brief Resumes a process.
- * 
+ *
  * @param proc Process to be resumed.
- * 
+ *
  * @note The process must stopped to be resumed.
  */
 PUBLIC void resume(struct process *proc)
-{	
+{
 	/* Resume only if process has stopped. */
 	if (proc->state == PROC_STOPPED)
 		sched(proc);
@@ -63,7 +63,7 @@ PUBLIC void resume(struct process *proc)
 /**
  * @brief Work out the number of tickets allowed to a process according to its priority
  */
-PRIVATE int num_tickets(int priority){ 
+PRIVATE int num_tickets(int priority){
 	int tickets;
 	switch(priority){
 		case PRIO_IO : 			tickets = 8; break;
@@ -105,20 +105,20 @@ PUBLIC void add_tickets(struct process* proc){
 PUBLIC void rm_tickets(struct process* proc){
 	int nb = num_tickets(proc->priority);
 	nb_total_tickets -= nb; // We work out the number of tickets to remove
-	
+
 	int i=0;
 	while(i < nb_total_tickets && array_tickets[i]!=proc->pid){ //We search where is the group of tickets of proc
 		i++;
 	}
-	
-	if(i == nb_total_tickets){ // If we don't fine it, we make nothing 
+
+	if(i == nb_total_tickets){ // If we don't fine it, we make nothing
 		return;
 }
 	for(;i<nb_total_tickets;i++){ // Else, we copy the tickets on the left to crush the tickets to delete
 		array_tickets[i]=array_tickets[i+nb];
 	}
-	
-	for(;i<i+nb;i++){ // And we delete the last tickets, in case of the tickets to delete are the last ones
+
+	for(;i<nb_total_tickets+nb;i++){ // And we delete the last tickets, in case of the tickets to delete are the last ones
 		array_tickets[i]=-1;
 	}
 }
@@ -126,7 +126,7 @@ PUBLIC void rm_tickets(struct process* proc){
 /**
  * @brief Draw a ticket inside the existing tickets.
  */
-PRIVATE int draw_ticket(void){ 
+PRIVATE int draw_ticket(void){
 	return krand()%(nb_total_tickets);
 }
 
@@ -151,7 +151,7 @@ PUBLIC void yield(void)
 		/* Skip invalid processes. */
 		if (!IS_VALID(p))
 			continue;
-		
+
 		/* Alarm has expired. */
 		if ((p->alarm) && (p->alarm < ticks))
 			p->alarm = 0, sndsig(p, SIGALRM);
@@ -162,7 +162,7 @@ PUBLIC void yield(void)
 	next = IDLE;
 	int ticket = draw_ticket();
 	for (p = FIRST_PROC; p <= LAST_PROC; p++){
-	
+
 		/* Skip non-ready process. */
 		if (p->state != PROC_READY)
 			continue;
@@ -174,9 +174,9 @@ PUBLIC void yield(void)
 
 		else
 			p->counter++;
-		
+
 	}
-	
+
 	/* Switch to next process. */
 	next->priority = PRIO_USER;
 	next->state = PROC_RUNNING;
