@@ -381,9 +381,13 @@ static int sched_test4(void){
 	
 	int father_nice =nice(2*NZERO);
 	father_nice = nice(1-NZERO);
+
+	// We fix the father_nice value to 19, first by giving it it's max value (2*NZERO-2), then by adding the (1-NZERO) value, which is -19, for NZERO is 20
+
 	if(father_nice!=19){ // Father nice = NZERO - 1
 		return -2;
 	} 
+	
 
 	int tab[5];
 
