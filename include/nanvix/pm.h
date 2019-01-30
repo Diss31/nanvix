@@ -218,14 +218,14 @@
 	 * @name Ticket table, initially empty
 	 */
 	/**@{*/
-		PUBLIC struct pid_t array_tickets[TAB_SIZE]={NULL};
+		PUBLIC pid_t array_tickets[TAB_SIZE];
 	/**@}*/
 
 	/**
 	 * @name Number of tickets in the ticket table, initially at 0
 	 */
 	/**@{*/
-		PUBLIC int nb_total_tickets=0;
+		PUBLIC int nb_total_tickets;
 	/**@}*/
 
 

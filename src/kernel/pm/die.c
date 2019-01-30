@@ -110,8 +110,6 @@ PUBLIC void die(int status)
 
 	rm_tickets(curr_proc);
 
-	regroup_tickets();
-
 	yield();
 }
 

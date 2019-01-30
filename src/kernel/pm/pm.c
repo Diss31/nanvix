@@ -67,6 +67,12 @@ PUBLIC pid_t next_pid = 0;
 PUBLIC unsigned nprocs = 0;
 
 /**
+ * @brief Current number of tickets in the system.
+ */
+PUBLIC pid_t array_tickets[TAB_SIZE]={-1};
+PUBLIC int nb_total_tickets=0;
+
+/**
  * @brief Initializes the process management system.
  */
 PUBLIC void pm_init(void)
@@ -126,65 +132,3 @@ PUBLIC void pm_init(void)
 	enable_interrupts();
 }
 
-/**
- * @brief Work out the number of tickets allowed to a process according to its priority
- */
-PRIVATE int num_tickets(int priority){ 
-	int tickets;
-	switch(priority){
-		case PRIO_IO : 			tickets = 8; break;
-		case PRIO_BUFFER : 		tickets = 7; break;
-		case PRIO_INODE : 		tickets = 6; break;
-		case PRIO_SUPERBLOCK : 	tickets = 5; break;
-		case PRIO_REGION :		tickets = 4; break;
-		case PRIO_TTY : 		tickets = 3; break;
-		case PRIO_SIG : 		tickets = 2; break;
-		case PRIO_USER : 		tickets = 1; break;
-	}
-
-	return tickets;
-}
-
-/**
- * @brief Allow a determinist number of tickets for a process, according to its priority.
- *
- * @note There is no verification if the process have already tickets. We allow no ticket for IDLE;
- */
-PUBLIC void add_tickets(struct process* proc){
-
-	if(proc->pid==1){ //If the proc is IDLE
-		return; // Make nothing
-	}
-
-	int nb =num_tickets(proc->priority); // Number of tickets allowed
-	for(int i = nb_total_tickets; i < nb_total_tickets + nb;i++){
-		array_tickets[i]=proc->pid; // We add the process pid, nb times in the array_tickets. So all tickets for a process are successive
-	}
-	nb_total_tickets += nb; //We update the total number of tickets
-}
-
-/**
- * @brief Desallow the tickets of a process.
- *
- * @note If the process has no ticket, make nothing.
- */
-PUBLIC void rm_ticket(struct process* proc){
-	int nb = num_tickets(proc->priority);
-	nb_total_tickets -= nb; // We work out the number of tickets to remove
-	
-	int i=0;
-	while(i < nb_total_tickets && array_tickets[i]!=proc->pid){ //We search where is the group of tickets of proc
-		i++;
-	}
-	
-	if(i == nb_total_tickets){ // If we don't fine it, we make nothing 
-		return;
-	}
-	for(i;i<nb_total_tickets;i++){ // Else, we copy the tickets on the left to crush the tickets to delete
-		array_tickets[i]=array_tickets[i+nb];
-	}
-	
-	for(i;i<i+nb;i++){ // And we delete the last tickets, in case of the tickets to delete are the last ones
-		array_tickets[i]=NULL;
-	}
-}
