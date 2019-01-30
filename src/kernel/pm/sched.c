@@ -86,7 +86,7 @@ PRIVATE int num_tickets(int priority){
  */
 PUBLIC void add_tickets(struct process* proc){
 
-	if(proc->pid==1){ //If the proc is IDLE
+	if(proc->pid==0){ //If the proc is IDLE
 		return; // Make nothing
 	}
 
