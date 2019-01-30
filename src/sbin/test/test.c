@@ -377,11 +377,11 @@ static int sched_test3(void)
  * 
  * @returns Zero if passed on test, and non-zero otherwise.
  */
+
 static int sched_test4(void){
-	
 	int father_nice =nice(2*NZERO);
+	// We fix the father_nice value to 19, first by giving it it's max value (2*NZERO-1), then by substracting the NZERO value, which is 20
 	father_nice = nice(-NZERO);
-	printf("%d\n",father_nice );
 	if(father_nice!=19){ // Father nice = NZERO - 1
 		return -2;
 	} 
@@ -391,7 +391,6 @@ static int sched_test4(void){
 	for(int i=4;i>=0;i--){ // We begin with the most important value of nice
 
 		int pid = fork();
-
 		/* Failed to fork(). */
 		if (pid < 0)
 			return (-1);
@@ -399,7 +398,7 @@ static int sched_test4(void){
 		/* Child process. */
 		else if (pid == 0)
 		{
-			printf("%d\n",nice(i+NZERO - 3));
+			nice(i+NZERO - 3);
 			work_cpu();
 			_exit(EXIT_SUCCESS);
 
@@ -409,35 +408,36 @@ static int sched_test4(void){
 		}
 	}
 
-	// Child nice in the tab = 2*NZERO-4 2*NZERO-3 2*NZERO-2 2*NZERO-1(1) 2*NZERO-1(2)
+	// Child nice in the tab = 2*NZERO-4 2*NZERO-3 2*NZERO-2 2*NZERO-1(a) 2*NZERO-1(b)
+
+	// The order of the values are: 2*NZERO-5, 2*NZERO-4, 2*NZERO-3, 2*NZERO-2(b), 2*NZERO-2(a)
 
 	pid_t child;
 	for(int i=0;i<3;i++){ //children 2*NZERO-4 2*NZERO-3 2*NZERO-2
 		child = wait(NULL);
+		//If there's an error with the wait, the test failed
 		if(child==-1){
 			return -1;
 		}
+		//If the pid in the table isn't the one of the process who's just finished, there's an issue with scheduling and the test failed
 		if(tab[i]!=child){
-			printf("test1\n");
 			return -1;
 		}
 	}
 	
-	child = wait(NULL); //child 2*NZERO-2 2*NZERO-1(2)
+	child = wait(NULL); //child 2*NZERO-2 2*NZERO-1(b)
 	if(child==-1){
 		return -1;
 	}
 	if(tab[4]!=child){
-		printf("test2\n");
 		return -1;
 	}
 
-	child = wait(NULL); //child 2*NZERO-2 2*NZERO-1(1)
+	child = wait(NULL); //child 2*NZERO-2 2*NZERO-1(a)
 	if(child==-1){
 		return -1;
 	}
 	if(tab[3]!=child){
-		printf("test3\n");
 		return -1;
 	}
 

@@ -64,7 +64,9 @@ PUBLIC void resume(struct process *proc)
  */
 
 PUBLIC int give_priority(struct process* p){
-	return (p->priority + p->nice - p->counter); /* Since priority and nice are higher when they are negative, and counter is higher when it's the highest positive value possible, then we add priority and nice and substract counter. */
+	return ((p->priority * 3) + (p->nice * 2) - p->counter); /* Since priority and nice are higher when they are the lowest value possible, and counter is higher when it's the highest positive value possible, then we add priority and nice and substract counter. */
+
+/* We modulate the importance of the priority and nice field in our custom priority: to keep a scheduling based on priority, we multiply the first field by 3 and the second by 2; that way if a process has waited for long it'll be executed despite its low priority, but our scheduling still takes priority in account first */
 }
 
 /**
