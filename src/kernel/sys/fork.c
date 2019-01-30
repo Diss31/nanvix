@@ -155,7 +155,7 @@ found:
 	proc->next = NULL;
 	proc->chain = NULL;
 
-	add_tickets(proc);
+	add_tickets(proc); //Allocation of tickets
 
 	sched(proc);
 

@@ -108,7 +108,7 @@ PUBLIC void die(int status)
 	
 	sndsig(curr_proc->father, SIGCHLD);
 
-	rm_tickets(curr_proc);
+	rm_tickets(curr_proc); //Remove tickets allowed
 
 	yield();
 }
