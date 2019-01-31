@@ -38,6 +38,9 @@ PUBLIC int sys_nice(int incr)
 		curr_proc->nice = 0;
 	else if (curr_proc->nice >= 2*NZERO)
 		curr_proc->nice = 2*NZERO - 1;
+
+	rm_tickets(curr_proc); //Update the number of tickets allowed
+	add_tickets(curr_proc);
 	
 	return (curr_proc->nice);
 }

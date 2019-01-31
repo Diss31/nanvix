@@ -211,7 +211,7 @@
 	 * @name Max size of the ticket table
 	 */
 	/**@{*/
-	#define TAB_SIZE PROC_MAX*8
+	#define TAB_SIZE PROC_MAX*8*2*NZERO
 	/**@}*/
 
 	/**

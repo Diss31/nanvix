@@ -61,9 +61,9 @@ PUBLIC void resume(struct process *proc)
 }
 
 /**
- * @brief Work out the number of tickets allowed to a process according to its priority
+ * @brief Work out the number of tickets allowed to a process according to its priority and its nice
  */
-PRIVATE int num_tickets(int priority){
+PRIVATE int num_tickets(int priority, int nice){
 	int tickets;
 	switch(priority){
 		case PRIO_IO : 			tickets = 8; break;
@@ -76,7 +76,7 @@ PRIVATE int num_tickets(int priority){
 		case PRIO_USER : 		tickets = 1; break;
 	}
 
-	return tickets;
+	return tickets * ((2*NZERO)-nice); // For f(nice)= ((2*NZERO)-nice), 1<=f(nice)<=2*NZERO and f decreasing dunctions
 }
 
 /**
@@ -90,7 +90,7 @@ PUBLIC void add_tickets(struct process* proc){
 		return; // Make nothing
 	}
 
-	int nb =num_tickets(proc->priority); // Number of tickets allowed
+	int nb =num_tickets(proc->priority,proc->nice); // Number of tickets allowed
 	for(int i = nb_total_tickets; i < nb_total_tickets + nb;i++){
 		array_tickets[i]=proc->pid; // We add the process pid, nb times in the array_tickets. So all tickets for a process are successive
 	}
@@ -103,7 +103,7 @@ PUBLIC void add_tickets(struct process* proc){
  * @note If the process has no ticket, make nothing.
  */
 PUBLIC void rm_tickets(struct process* proc){
-	int nb = num_tickets(proc->priority);
+	int nb = num_tickets(proc->priority,proc->nice);
 	nb_total_tickets -= nb; // We work out the number of tickets to remove
 
 	int i=0;
@@ -111,7 +111,7 @@ PUBLIC void rm_tickets(struct process* proc){
 		i++;
 	}
 
-	if(i == nb_total_tickets){ // If we don't fine it, we make nothing
+	if(i == nb_total_tickets+nb){ // If we don't fine it, we make nothing
 		return;
 }
 	for(;i<nb_total_tickets;i++){ // Else, we copy the tickets on the left to crush the tickets to delete
@@ -119,7 +119,7 @@ PUBLIC void rm_tickets(struct process* proc){
 	}
 
 	for(;i<nb_total_tickets+nb;i++){ // And we delete the last tickets, in case of the tickets to delete are the last ones
-		array_tickets[i]=-1;
+		array_tickets[i]=0;
 	}
 }
 
