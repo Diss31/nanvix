@@ -248,13 +248,14 @@ static int sched_test0(void)
 	return (0);
 }
 
-*
+/**
  * @brief Scheduling test 1.
  * 
  * @details Forces the priority inversion problem, to check how well the system
  *          performs on dynamic priorities.
  * 
  * @returns Zero if passed on test, and non-zero otherwise.
+ **/
  
 static int sched_test1(void)
 {
@@ -646,7 +647,7 @@ int main(int argc, char **argv)
 			printf("  dynamic priorities [%s]\n",
 				(!sched_test1()) ? "PASSED" : "FAILED");
 			printf("  scheduler stress   [%s]\n",
-				(!sched_test2() /*&& !sched_test3()*/) ? "PASSED" : "FAILED");
+				(!sched_test2() && !sched_test3()) ? "PASSED" : "FAILED");
 		}
 		
 		/* IPC test. */
