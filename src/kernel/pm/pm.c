@@ -69,7 +69,7 @@ PUBLIC unsigned nprocs = 0;
 /**
  * @brief Current number of tickets in the system.
  */
-PUBLIC pid_t array_tickets[TAB_SIZE]={-1};
+PUBLIC pid_t array_tickets[TAB_SIZE]={0};
 PUBLIC int nb_total_tickets=0;
 
 /**

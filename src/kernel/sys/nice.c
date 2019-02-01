@@ -30,6 +30,8 @@ PUBLIC int sys_nice(int incr)
 	/* Not authorized. */
 	if ((incr < 0) && !IS_SUPERUSER(curr_proc))
 		return (-EPERM);
+
+	rm_tickets(curr_proc); //Remove the old number of tickets
 	
 	curr_proc->nice += incr;
 	
@@ -39,8 +41,7 @@ PUBLIC int sys_nice(int incr)
 	else if (curr_proc->nice >= 2*NZERO)
 		curr_proc->nice = 2*NZERO - 1;
 
-	rm_tickets(curr_proc); //Update the number of tickets allowed
-	add_tickets(curr_proc);
+	add_tickets(curr_proc); //Add the new number of tickets
 	
 	return (curr_proc->nice);
 }
