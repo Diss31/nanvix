@@ -5,7 +5,7 @@
  *
  * @details Make some operations according to the value of cmd
  * 
- *          If cmd is equal to zero, then we try to get the value of the semaphore
+ *      If cmd is equal to zero, then we try to get the value of the semaphore
  *	    If cmd is equal to one, then we try to set the value of the semaphore to val
  *	    If cmd is equal to three, then we destroy the semaphore if it's not used
  * 
@@ -18,8 +18,8 @@
 
 
 PUBLIC int sys_semctl(int semid, int cmd, int val){
-	semaphore* s = tab[semid][0];
-	if(s==NULL)
+	Semaphore s = tab[semid].s;
+	if(s.waiting_queue==NULL)
 		return -1;
 	int value = -1;
 
@@ -32,7 +32,7 @@ PUBLIC int sys_semctl(int semid, int cmd, int val){
 			value=0;
 			break;
 		case 3: //IPC RMID
-			if(tab[semid][2]==0){
+			if(tab[semid].nbproc==0){
 				destroy(s);
 			}
 			value=0;

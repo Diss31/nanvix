@@ -20,7 +20,7 @@
 
 #ifndef SEM_H_
 #define SEM_H_
-
+#include <nanvix/const.h>
 /**
  * @brief Comand values for semaphores.
  */
