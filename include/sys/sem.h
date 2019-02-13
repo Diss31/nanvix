@@ -20,31 +20,37 @@
 #ifndef SEM_H_
 #define SEM_H_
 
-	/**
-	 * @brief Comand values for semaphores.
-	 */
-	/**@{*/
-	#define GETVAL   0 /**< Returns the value of a semaphore. */
-	#define SETVAL   1 /**< Sets the value of a semaphore.    */
-	#define IPC_RMID 3 /**< Destroys a semaphore.            */
-	/**@}*/
-
-	typedef struct{ //Suppression des PUBLIC et PRIVATE
-	int val;
-	struct process **waiting_queue;
-} Semaphore;
-
-PUBLIC Semaphore create(int n);
-
-#define SIZE_MAX_TAB 50
-
-PUBLIC Semaphore tab[SIZE_MAX_TAB][3];
+/**
+ * @brief Comand values for semaphores.
+ */
+/**@{*/
+#define GETVAL   0 /**< Returns the value of a semaphore. */
+#define SETVAL   1 /**< Sets the value of a semaphore.    */
+#define IPC_RMID 3 /**< Destroys a semaphore.            */
+/**@}*/
 
 #ifndef _ASM_FILE_
 
-	/* Forward definitions. */
+	typedef struct { //Suppression des PUBLIC et PRIVATE
+		int val;
+		struct process **waiting_queue;
+	} Semaphore;
+
+	PUBLIC Semaphore create(int n);
+	PUBLIC int print_value(Semaphore sem);
+	PUBLIC Semaphore assign_value(Semaphore sem, int n);
+	PUBLIC Semaphore down(Semaphore sem);
+	PUBLIC Semaphore up(Semaphore sem);
+	PUBLIC Semaphore destroy(Semaphore sem);
+
+#define SIZE_MAX_TAB 50
+
+	PUBLIC Semaphore tab[SIZE_MAX_TAB][3];
+
+/* Forward definitions. */
 	extern int semget(unsigned);
 	extern int semctl(int, int, int);
 	extern int semop(int, int);
+
 #endif
 #endif /* SEM_H_ */
