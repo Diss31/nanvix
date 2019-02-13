@@ -381,12 +381,12 @@ static int sched_test3(void)
 /**
  * @brief Initializes a semaphore.
  */
-#define SEM_INIT(a, b) (assert(semctl((a), SETVAL, (b)) == 0))
+#define SEM_INIT(a, b) (assert(semctl((a), 1, (b)) == 0))
 
 /**
  * @brief Destroys a semaphore.
  */
-#define SEM_DESTROY(x) (assert(semctl((x), IPC_RMID, 0) == 0))
+#define SEM_DESTROY(x) (assert(semctl((x), 3, 0) == 0))
 
 /**
  * @brief Ups a semaphore.
@@ -431,7 +431,7 @@ int semaphore_test3(void)
 	int full;                   /* Full positions.          */
 	int mutex;                  /* Mutex.                   */
 	const int BUFFER_SIZE = 32; /* Buffer size.             */
-	const int NR_ITEMS = 512;   /* Number of items to send. */
+//	const int NR_ITEMS = 512;   /* Number of items to send. */
 	
 	/* Create buffer.*/
 	buffer_fd = open("buffer", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
@@ -442,24 +442,29 @@ int semaphore_test3(void)
 	SEM_CREATE(mutex, 1);
 	SEM_CREATE(empty, 2);
 	SEM_CREATE(full, 3);
-		
-	/* Initialize semaphores. */
+
+	//mutex=0
+	//empty=1
+	//full=2
+
 	SEM_INIT(full, 0);
 	SEM_INIT(empty, BUFFER_SIZE);
 	SEM_INIT(mutex, 1);
+
+	assert(semctl((mutex), 0, (0)) == 1);
 	
 	if ((pid = fork()) < 0)
 		return (-1);
 	
 	/* Producer. */
-	else if (pid == 0)
+/*	else if (pid == 0)
 	{
 		for (int item = 0; item < NR_ITEMS; item++)
 		{
 			SEM_DOWN(empty);
 			SEM_DOWN(mutex);
 			
-			PUT_ITEM(buffer_fd, item);
+			//PUT_ITEM(buffer_fd, item);
 				
 			SEM_UP(mutex);
 			SEM_UP(full);
@@ -468,7 +473,7 @@ int semaphore_test3(void)
 		_exit(EXIT_SUCCESS);
 	}
 	
-	/* Consumer. */
+	 Consumer. 
 	else
 	{
 		int item;
@@ -478,12 +483,12 @@ int semaphore_test3(void)
 			SEM_DOWN(full);
 			SEM_DOWN(mutex);
 			
-			GET_ITEM(buffer_fd, item);
+			//GET_ITEM(buffer_fd, item);
 				
 			SEM_UP(mutex);
 			SEM_UP(empty);
 		} while (item != (NR_ITEMS - 1));
-	}
+	}*/
 					
 	/* Destroy semaphores. */
 	SEM_DESTROY(mutex);
