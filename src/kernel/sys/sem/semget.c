@@ -7,7 +7,7 @@
  * @details Search in the semaphore table if there's a semaphore with this key
  *
  *          If yes, then we do nothing and return the key
- *	    If not, we create a semaphore with this key
+ *	    	If not, we create a semaphore with this key
  *
  * @param key    The key of the semaphore
  *
@@ -16,27 +16,22 @@
 
 PUBLIC int sys_semget(unsigned key)
 {
-	int exists = 0;
-	for(int i=0; i<SIZE_SEM_TAB; i++){
-		if(tab[i].key==key){
-			exists=1;
-			break;
+
+	for(int id = 0; id<NB_SEM; id++){ // If the semaphore already exists
+		if(tab[id].key==key){
+			tab[id].nbproc++;
+			return id;
 		}
 	}
 
-	int id=0;
-	if(!exists){
-		Semaphore semaphore = create(1);
-		/* ajouter le nouveau semaphore dans la table */
-		for(;id<SIZE_SEM_TAB; id++){
-			if(tab[id].key==0){
-				tab[id].s=semaphore;
-				tab[id].key=key;
-				tab[id].nbproc=0;
-				break;
-			}
-		}
-	}
+	// Else
 
-	return id;
+	/* add a new semaphore in the table */
+	
+	tab[NB_SEM].s=create(1);
+	tab[NB_SEM].key=key;
+	tab[NB_SEM].nbproc=0;
+	NB_SEM++;
+
+	return NB_SEM-1;
 }

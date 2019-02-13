@@ -67,6 +67,8 @@
 	**/
 	PUBLIC unit tab[SIZE_SEM_TAB];
 
+	PUBLIC int NB_SEM; // Number of active semaphore
+
 	// Functions to edit a semaphore
 
 	PUBLIC Semaphore create(int n);

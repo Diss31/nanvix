@@ -27,6 +27,7 @@
 #include <nanvix/mm.h>
 #include <nanvix/pm.h>
 #include <nanvix/klib.h>
+#include <sys/sem.h>
 #include <sys/stat.h>
 #include <signal.h>
 #include <limits.h>
@@ -122,6 +123,8 @@ PUBLIC void pm_init(void)
 	IDLE->chain = NULL;
 	
 	nprocs++;
+
+	NB_SEM = 0;
 
 	enable_interrupts();
 }
