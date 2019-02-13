@@ -18,6 +18,10 @@
 PUBLIC int sys_semop(int semid, int op){
 	Semaphore s = tab[semid].s;
 
+	/* If there was an issue with getting the semaphore, we can't run operations on it */
+	if(s.waiting_queue==NULL)
+		return -1;
+
 	int oldvalue, newvalue;
 
 	if(op<0){
