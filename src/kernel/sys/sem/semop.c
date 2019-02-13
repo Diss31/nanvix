@@ -18,28 +18,14 @@
 PUBLIC int sys_semop(int semid, int op){
 	Semaphore s = tab[semid].s;
 
-	int oldvalue, newvalue;
-
 	if(op<0){
-		oldvalue = s.val;
 		for (int i=0; i>op; i--)
-			down(s);
-		newvalue = s.val;
-
-		/* We call GETVAL before and after running our operations to check if it worked. If it didn't we return -1 */
-		if(newvalue != oldvalue-op)
-			return -1;
+			s=down(s);
 	}
 
 	else if (op>0) {
-		oldvalue = s.val;
-		for (int i = 0; i<op; i++)
-			down(s);
-		newvalue = s.val;
-
-		/* We call GETVAL before and after running our operations to check if it worked. If it didn't we return -1 */
-		if(newvalue != oldvalue+op)
-			return -1;
+		for (int i=0; i<op; i++)
+			s=up(s);
 	}
 
 	return 0;

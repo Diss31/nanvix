@@ -28,12 +28,11 @@ PUBLIC int sys_semget(unsigned key)
 	if(!exists){
 		Semaphore semaphore = create(1);
 		/* ajouter le nouveau semaphore dans la table */
-		for(int i=0; i<SIZE_SEM_TAB; i++){
-			if(tab[i].s.waiting_queue==NULL){
-				tab[i].s=semaphore;
-				tab[i].key=key;
-				tab[i].nbproc=0;
-
+		for(;id<SIZE_SEM_TAB; id++){
+			if(tab[id].key==0){
+				tab[id].s=semaphore;
+				tab[id].key=key;
+				tab[id].nbproc=0;
 				break;
 			}
 		}
