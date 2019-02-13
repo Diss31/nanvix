@@ -29,9 +29,22 @@
 	#define IPC_RMID 3 /**< Destroys a semaphore.            */
 	/**@}*/
 
+	typedef struct{ //Suppression des PUBLIC et PRIVATE
+	int val;
+	struct process **waiting_queue;
+} Semaphore;
+
+PUBLIC Semaphore create(int n);
+
+#define SIZE_MAX_TAB 50
+
+PUBLIC Semaphore tab[SIZE_MAX_TAB][3];
+
+#ifndef _ASM_FILE_
+
 	/* Forward definitions. */
 	extern int semget(unsigned);
 	extern int semctl(int, int, int);
 	extern int semop(int, int);
-
+#endif
 #endif /* SEM_H_ */
