@@ -7,11 +7,16 @@
 /**
 	* @brief Create a semaphore
 	* 
-	* @details Take the initial value of a semaphore and return the initializing semaphore
+	* @details Take the initial value of a semaphore and return the initializing semaphore. If the initial value is negative, return a dead semaphore
 	*
 **/
 PUBLIC Semaphore create(int n){
 	Semaphore sem;
+
+	if(n<0){
+		return destroy(sem);
+	}
+
 	sem.val = n; //assert n>0
 	sem.waiting_queue = NULL;
 	
