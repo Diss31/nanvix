@@ -18,9 +18,12 @@
  * along with Nanvix. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <nanvix/const.h>
+#include <nanvix/config.h>
+
 #ifndef SEM_H_
 #define SEM_H_
-#include <nanvix/const.h>
+
 /**
  * @brief Comand values for semaphores.
  */
@@ -29,6 +32,8 @@
 #define SETVAL   1 /**< Sets the value of a semaphore.    */
 #define IPC_RMID 3 /**< Destroys a semaphore.            */
 /**@}*/
+
+#define SEM_SIZE_TAB PROC_MAX
 
 #ifndef _ASM_FILE_
 
@@ -59,7 +64,7 @@
 	 * @brief Table of the active semaphore
 	 *
 	**/
-	PUBLIC unit tab[PROC_MAX];
+	PUBLIC unit tab[SEM_SIZE_TAB];
 
 	// Functions to edit a semaphore
 
@@ -72,9 +77,9 @@
 
 	// Functions to use semaphore
 	/* Forward definitions. */
-	extern int semget(unsigned);
-	extern int semctl(int, int, int);
-	extern int semop(int, int);
+	EXTERN int semget(unsigned);
+	EXTERN int semctl(int, int, int);
+	EXTERN int semop(int, int);
 
 #endif
 #endif /* SEM_H_ */
