@@ -65,7 +65,7 @@
 	 * @brief Table of the active semaphore
 	 *
 	**/
-	PUBLIC unit tab[SEM_SIZE_TAB];
+	PUBLIC unit tab[SIZE_SEM_TAB];
 
 	// Functions to edit a semaphore
 

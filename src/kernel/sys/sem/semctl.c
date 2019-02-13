@@ -25,10 +25,10 @@ PUBLIC int sys_semctl(int semid, int cmd, int val){
 
 	switch(cmd){
 		case 0: //GETVAL
-			value = print_value(s);
+			value = s.val;
 			break;
 		case 1: //SETVAL
-			assign_value(s,val);
+			s.val = val;
 			value=0;
 			break;
 		case 3: //IPC RMID

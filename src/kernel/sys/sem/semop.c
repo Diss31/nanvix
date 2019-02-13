@@ -25,10 +25,10 @@ PUBLIC int sys_semop(int semid, int op){
 	int oldvalue, newvalue;
 
 	if(op<0){
-		oldvalue = print_value(s);
+		oldvalue = s.val;
 		for (int i=0; i>op; i--)
 			down(s);
-		newvalue = print_value(s);
+		newvalue = s.val;
 
 		/* We call GETVAL before and after running our operations to check if it worked. If it didn't we return -1 */
 		if(newvalue != oldvalue-op)
@@ -36,10 +36,10 @@ PUBLIC int sys_semop(int semid, int op){
 	}
 
 	else if (op>0) {
-		oldvalue = print_value(s);
+		oldvalue = s.val;
 		for (int i = 0; i<op; i++)
 			down(s);
-		newvalue = print_value(s);
+		newvalue = s.val;
 
 		/* We call GETVAL before and after running our operations to check if it worked. If it didn't we return -1 */
 		if(newvalue != oldvalue+op)
