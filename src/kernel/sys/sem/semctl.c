@@ -31,7 +31,7 @@ PUBLIC int sys_semctl(int semid, int cmd, int val){
 			value=0;
 			break;
 		case 3: //IPC RMID
-			if(tab[semid].nbproc==0){
+			if(tab[semid].nbproc==1){
 				s = destroy(s);
 			}
 			else{

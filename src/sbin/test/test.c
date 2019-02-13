@@ -473,7 +473,7 @@ int semaphore_test3(void)
 		_exit(EXIT_SUCCESS);
 	}
 	
-	/* Consumer. */
+	/* Consumer. -->pb ici! */ 
 	else
 	{
 		int item;
