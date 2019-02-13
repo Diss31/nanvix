@@ -32,16 +32,36 @@
 
 #ifndef _ASM_FILE_
 
-	typedef struct { //Suppression des PUBLIC et PRIVATE
+	/**
+	 * @brief Semaphore's struct 
+	 * 
+	 * @details Contains the semaphor's value et its waiting queue
+	 *
+	**/
+	PUBLIC typedef struct {
 		int val;
 		struct process **waiting_queue;
 	} Semaphore;
 
-	typedef struct { //Suppression des PUBLIC et PRIVATE
-    Semaphore s;
+	/**
+	 * @brief Stockage struct for the semaphore 
+	 * 
+	 * @details Contains a semaphor, its key and the numbre of current process using it
+	 *
+	**/
+	PUBLIC typedef struct { 
+		Semaphore s;
 		unsigned key;
 		int nbproc;
 	} unit;
+
+	/**
+	 * @brief Table of the active semaphore
+	 *
+	**/
+	PUBLIC unit tab[PROC_MAX];
+
+	// Functions to edit a semaphore
 
 	PUBLIC Semaphore create(int n);
 	PUBLIC int print_value(Semaphore sem);
@@ -50,11 +70,8 @@
 	PUBLIC Semaphore up(Semaphore sem);
 	PUBLIC Semaphore destroy(Semaphore sem);
 
-#define SIZE_MAX_TAB 50
-
-	PUBLIC unit tab[SIZE_MAX_TAB];
-
-/* Forward definitions. */
+	// Functions to use semaphore
+	/* Forward definitions. */
 	extern int semget(unsigned);
 	extern int semctl(int, int, int);
 	extern int semop(int, int);
