@@ -33,7 +33,8 @@
 #define IPC_RMID 3 /**< Destroys a semaphore.            */
 /**@}*/
 
-#define SEM_SIZE_TAB PROC_MAX
+#define SIZE_SEM_TAB PROC_MAX // Size of the semaphore table
+#define DEAD_SEM -999 // Semaphore's value to a dead one
 
 #ifndef _ASM_FILE_
 
@@ -69,8 +70,6 @@
 	// Functions to edit a semaphore
 
 	PUBLIC Semaphore create(int n);
-	PUBLIC int print_value(Semaphore sem);
-	PUBLIC Semaphore assign_value(Semaphore sem, int n);
 	PUBLIC Semaphore down(Semaphore sem);
 	PUBLIC Semaphore up(Semaphore sem);
 	PUBLIC Semaphore destroy(Semaphore sem);
