@@ -13,14 +13,13 @@
  * @param cmd      The identifier of the command to run
  * @param val      The new value to give to the semaphore if we do a SETVAL
  *
- * @return 0 if everything went well, -1 if there was a problem, the value of the semaphore if we did a GETVAL
+ * @return 0 if everything went well, the value of the semaphore if we did a GETVAL
  */ 
 
 
 PUBLIC int sys_semctl(int semid, int cmd, int val){
 	Semaphore s = tab[semid].s;
-	if(s.waiting_queue==NULL)
-		return -1;
+	
 	int value = -1;
 
 	switch(cmd){
