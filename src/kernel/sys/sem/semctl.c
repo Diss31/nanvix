@@ -31,7 +31,7 @@ PUBLIC int sys_semctl(int semid, int cmd, int val){
 			break;
 		case IPC_RMID:
 			if(tab_sem[semid].nbproc==1){ //if it's the only process to use this semaphore
-				tab_sem[semid].s = destroy(tab_sem[semid].s);
+				tab_sem[semid].s = destroy(&(tab_sem[semid].s));
 				tab_sem[semid].key = EMPTY_SEM;
 				tab_sem[semid].nbproc = 0;
 				NB_SEM--;

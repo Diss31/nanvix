@@ -19,12 +19,12 @@ PUBLIC int sys_semop(int semid, int op){
 
 	if(op<0){
 		for (int i=0; i>op; i--)
-			tab_sem[semid].s=down(tab_sem[semid].s);
+			tab_sem[semid].s=down(&(tab_sem[semid].s));
 	}
 
 	else if (op>0) {
 		for (int i=0; i<op; i++)
-			tab_sem[semid].s=up(tab_sem[semid].s);
+			tab_sem[semid].s=up(&(tab_sem[semid].s));
 	}
 
 	return 0;

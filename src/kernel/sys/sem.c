@@ -14,7 +14,7 @@ PUBLIC Semaphore create(int n){
 	Semaphore sem;
 
 	if(n<0){
-		return destroy(sem);
+		return destroy(&sem);
 	}
 
 	sem.val = n;
@@ -29,12 +29,12 @@ PUBLIC Semaphore create(int n){
 	* @details If the value become negative, the current processus is put in sleep. This function is a critical section.
 	*
 **/
-PUBLIC Semaphore down(Semaphore sem){
-	sem.val--;
-	if(sem.val<0){		
-		sleep(&sem.waiting_queue,PRIO_SEM);
+PUBLIC Semaphore down(Semaphore *sem){
+	sem->val--;
+	if(sem->val<0){		
+		sleep(&(sem->waiting_queue),PRIO_SEM);
 	}
-	return sem;
+	return *sem;
 }
 
 /**
@@ -43,12 +43,12 @@ PUBLIC Semaphore down(Semaphore sem){
 	* @details If the value become positive, we wake up the first process in the waiting queue. This function is a critical section.
 	*
 **/
-PUBLIC Semaphore up(Semaphore sem){
-	sem.val++;
-	if(sem.val<=0){
-		wakeup(&sem.waiting_queue);
+PUBLIC Semaphore up(Semaphore *sem){
+	sem->val++;
+	if(sem->val<=0){
+		wakeup(&(sem->waiting_queue));
 	}
-	return sem;
+	return *sem;
 }
 
 /**
@@ -57,8 +57,8 @@ PUBLIC Semaphore up(Semaphore sem){
 	* @details Set the semaphore's value at EMPTY_SEM and flutch its waiting queue.
 	*
 **/
-PUBLIC Semaphore destroy(Semaphore sem){
-	sem.val= EMPTY_SEM;
-	sem.waiting_queue=NULL;
-	return sem;
+PUBLIC Semaphore destroy(Semaphore *sem){
+	sem->val= EMPTY_SEM;
+	sem->waiting_queue=NULL;
+	return *sem;
 }

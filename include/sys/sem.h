@@ -73,9 +73,9 @@
 	// Functions to edit a semaphore
 
 	PUBLIC Semaphore create(int n);
-	PUBLIC Semaphore down(Semaphore sem);
-	PUBLIC Semaphore up(Semaphore sem);
-	PUBLIC Semaphore destroy(Semaphore sem);
+	PUBLIC Semaphore down(Semaphore *sem);
+	PUBLIC Semaphore up(Semaphore *sem);
+	PUBLIC Semaphore destroy(Semaphore *sem);
 
 	// Functions to use semaphore
 	/* Forward definitions. */
