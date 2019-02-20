@@ -443,14 +443,16 @@ int semaphore_test3(void)
 	SEM_CREATE(empty, 2);
 	SEM_CREATE(full, 3);
 
-	//mutex=0
-	//empty=1
-	//full=2
+	assert(mutex == 0);
+	assert(empty== 1);
+	assert(full == 2);
 
 	SEM_INIT(full, 0);
 	SEM_INIT(empty, BUFFER_SIZE);
 	SEM_INIT(mutex, 1);
 
+	assert(semctl((full), GETVAL, (0)) == 0);
+	assert(semctl((empty), GETVAL, (0)) == BUFFER_SIZE);
 	assert(semctl((mutex), GETVAL, (0)) == 1);
 	
 	if ((pid = fork()) < 0)
