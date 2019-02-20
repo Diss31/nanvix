@@ -33,7 +33,7 @@ PUBLIC int sys_semctl(int semid, int cmd, int val){
 		case IPC_RMID:
 			if(tab[semid].nbproc==1){ //if it's the only process to use this semaphore
 				s = destroy(s);
-				nb_sem--;
+				NB_SEM--;
 			}
 			else{
 				tab[semid].nbproc--; // else

@@ -16,7 +16,7 @@
 
 PUBLIC int sys_semget(unsigned key)
 {
-	for(int id = 0; id<nb_sem; id++){ // If the semaphore already exists
+	for(int id = 0; id<NB_SEM; id++){ // If the semaphore already exists
 		if(tab[id].key==key){
 			tab[id].nbproc++;
 			return id;
@@ -27,10 +27,10 @@ PUBLIC int sys_semget(unsigned key)
 
 	/* add a new semaphore in the table */
 	
-	tab[nb_sem].s=create(1);
-	tab[nb_sem].key=key;
-	tab[nb_sem].nbproc=0;
-	nb_sem++;
+	tab[NB_SEM].s=create(1);
+	tab[NB_SEM].key=key;
+	tab[NB_SEM].nbproc=0;
+	NB_SEM++;
 
-	return nb_sem-1;
+	return NB_SEM-1;
 }
