@@ -26,10 +26,11 @@ PUBLIC int sys_semget(unsigned key)
 	// Else
 
 	/* add a new semaphore in the table */
-	
+
 	tab_sem[NB_SEM].s=create(1);
 	tab_sem[NB_SEM].key=key;
-	tab_sem[NB_SEM].nbproc=0;
+	tab_sem[NB_SEM].nbproc=1;
+
 	NB_SEM++;
 
 	return NB_SEM-1;
