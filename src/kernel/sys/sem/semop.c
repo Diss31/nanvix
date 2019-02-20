@@ -16,7 +16,7 @@
  */ 
 
 PUBLIC int sys_semop(int semid, int op){
-	Semaphore s = tab[semid].s;
+	Semaphore s = tab_sem[semid].s;
 
 	if(op<0){
 		for (int i=0; i>op; i--)
