@@ -17,6 +17,7 @@
 PUBLIC int sys_semget(unsigned key)
 {
 
+
 	for(int id = 0; id<NB_SEM; id++){ // If the semaphore already exists
 		if(tab_sem[id].key==key){
 			tab_sem[id].nbproc++;
