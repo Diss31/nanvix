@@ -34,7 +34,7 @@
 /**@}*/
 
 #define SIZE_SEM_TAB PROC_MAX // Size of the semaphore table
-#define DEAD_SEM -999 // Semaphore's value to a dead one
+#define EMPTY_SEM -999 // Semaphore's value and key to a non-initialized or dead one
 
 #ifndef _ASM_FILE_
 
@@ -46,7 +46,7 @@
 	**/
 	PUBLIC typedef struct {
 		int val;
-		struct process **waiting_queue;
+		struct process *waiting_queue;
 	} Semaphore;
 
 	/**

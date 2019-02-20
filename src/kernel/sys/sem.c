@@ -17,7 +17,7 @@ PUBLIC Semaphore create(int n){
 		return destroy(sem);
 	}
 
-	sem.val = n; //assert n>0
+	sem.val = n;
 	sem.waiting_queue = NULL;
 	
 	return sem;
@@ -30,12 +30,10 @@ PUBLIC Semaphore create(int n){
 	*
 **/
 PUBLIC Semaphore down(Semaphore sem){
-	disable_interrupts();
 	sem.val--;
 	if(sem.val<0){		
-		sleep(sem.waiting_queue,PRIO_SEM);
+		sleep(&sem.waiting_queue,PRIO_SEM);
 	}
-	enable_interrupts();
 	return sem;
 }
 
@@ -46,23 +44,21 @@ PUBLIC Semaphore down(Semaphore sem){
 	*
 **/
 PUBLIC Semaphore up(Semaphore sem){
-	disable_interrupts();
 	sem.val++;
-	if(sem.val>=0){
-		wakeup(sem.waiting_queue);
+	if(sem.val<=0){
+		wakeup(&sem.waiting_queue);
 	}
-	enable_interrupts();
 	return sem;
 }
 
 /**
 	* @brief Destroy the semaphore and return the new semaphore
 	* 
-	* @details Set the semaphore's value at DEAD_SEM and flutch its waiting queue.
+	* @details Set the semaphore's value at EMPTY_SEM and flutch its waiting queue.
 	*
 **/
 PUBLIC Semaphore destroy(Semaphore sem){
-	sem.val= DEAD_SEM;
+	sem.val= EMPTY_SEM;
 	sem.waiting_queue=NULL;
 	return sem;
 }

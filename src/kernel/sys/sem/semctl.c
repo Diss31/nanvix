@@ -18,21 +18,22 @@
 
 
 PUBLIC int sys_semctl(int semid, int cmd, int val){
-	Semaphore s = tab_sem[semid].s;
-	
+
 	int value = -1;
 
 	switch(cmd){
 		case GETVAL:
-			value = s.val;
+			value = tab_sem[semid].s.val;
 			break;
 		case SETVAL:
-			s.val = val;
+			tab_sem[semid].s.val = val;
 			value = 0;
 			break;
 		case IPC_RMID:
 			if(tab_sem[semid].nbproc==1){ //if it's the only process to use this semaphore
-				s = destroy(s);
+				tab_sem[semid].s = destroy(tab_sem[semid].s);
+				tab_sem[semid].key = EMPTY_SEM;
+				tab_sem[semid].nbproc = 0;
 				NB_SEM--;
 			}
 			else{
@@ -40,5 +41,6 @@ PUBLIC int sys_semctl(int semid, int cmd, int val){
 			}
 			value=0;
 	}
+
 	return value;
 }

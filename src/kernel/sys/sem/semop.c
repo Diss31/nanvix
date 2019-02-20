@@ -16,16 +16,15 @@
  */ 
 
 PUBLIC int sys_semop(int semid, int op){
-	Semaphore s = tab_sem[semid].s;
 
 	if(op<0){
 		for (int i=0; i>op; i--)
-			s=down(s);
+			tab_sem[semid].s=down(tab_sem[semid].s);
 	}
 
 	else if (op>0) {
 		for (int i=0; i<op; i++)
-			s=up(s);
+			tab_sem[semid].s=up(tab_sem[semid].s);
 	}
 
 	return 0;

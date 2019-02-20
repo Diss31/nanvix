@@ -466,6 +466,7 @@ int semaphore_test3(void)
 			SEM_DOWN(empty);
 			SEM_DOWN(mutex);
 			
+			printf("Production item %d\n",item);
 			PUT_ITEM(buffer_fd, item);
 				
 			SEM_UP(mutex);
@@ -475,7 +476,7 @@ int semaphore_test3(void)
 		_exit(EXIT_SUCCESS);
 	}
 	
-	/* Consumer. -->pb ici! */ 
+	/* Consumer. */ 
 	else
 	{
 		int item;
@@ -485,6 +486,7 @@ int semaphore_test3(void)
 			SEM_DOWN(full);
 			SEM_DOWN(mutex);
 			
+			printf("Consommation item %d\n",item);
 			GET_ITEM(buffer_fd, item);
 				
 			SEM_UP(mutex);

@@ -27,7 +27,7 @@ PUBLIC int sys_semget(unsigned key)
 
 	/* add a new semaphore in the table */
 
-	tab_sem[NB_SEM].s=create(1);
+	tab_sem[NB_SEM].s=create(EMPTY_SEM);
 	tab_sem[NB_SEM].key=key;
 	tab_sem[NB_SEM].nbproc=1;
 
