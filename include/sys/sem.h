@@ -59,14 +59,14 @@
 		Semaphore s;
 		unsigned key;
 		int nbproc;
-	} unit;
+	} sem_state;
 
 	/**
 	 * @brief Table of the active semaphore
 	 *
 	**/
 
-	PUBLIC unit tab_sem[SIZE_SEM_TAB];
+	PUBLIC sem_state current_semaphores[SIZE_SEM_TAB];
 
 	PUBLIC int NB_SEM; // Number of active semaphore
 

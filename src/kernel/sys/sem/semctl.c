@@ -23,21 +23,21 @@ PUBLIC int sys_semctl(int semid, int cmd, int val){
 
 	switch(cmd){
 		case GETVAL:
-			value = tab_sem[semid].s.val;
+			value = current_semaphores[semid].s.val;
 			break;
 		case SETVAL:
-			tab_sem[semid].s.val = val;
+			current_semaphores[semid].s.val = val;
 			value = 0;
 			break;
 		case IPC_RMID:
-			if(tab_sem[semid].nbproc==1){ //if it's the only process to use this semaphore
-				tab_sem[semid].s = destroy(&(tab_sem[semid].s));
-				tab_sem[semid].key = EMPTY_SEM;
-				tab_sem[semid].nbproc = 0;
+			if(current_semaphores[semid].nbproc==1){ //if it's the only process to use this semaphore
+				current_semaphores[semid].s = destroy(&(current_semaphores[semid].s));
+				current_semaphores[semid].key = EMPTY_SEM;
+				current_semaphores[semid].nbproc = 0;
 				NB_SEM--;
 			}
 			else{
-				tab_sem[semid].nbproc--; // else
+				current_semaphores[semid].nbproc--; // else
 			}
 			value=0;
 	}
