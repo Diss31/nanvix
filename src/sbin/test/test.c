@@ -53,7 +53,7 @@ static int swap_test(void)
 {
 	#define N 1280
 	int *a, *b, *c;
-	clock_t t0, t1;
+	clock_t t0, t1,t2;
 	struct tms timing;
 
 	/* Allocate matrices. */
@@ -73,6 +73,13 @@ static int swap_test(void)
 		b[i] = 1;
 		c[i] = 0;
 	}
+
+	t1 = times(&timing);
+
+	if (flags & VERBOSE){
+		printf(" Init time: %d\n", t1 - t0);
+	}
+
 	
 	/* Multiply matrices. */
 	if (flags & (EXTENDED | FULL))
@@ -86,6 +93,12 @@ static int swap_test(void)
 					c[i*N + j] += a[i*N + k]*b[k*N + j];
 			}
 		}
+	}
+
+	t2 = times(&timing);
+
+	if (flags & VERBOSE){
+		printf(" Calculation time: %d\n", t2 - t1);
 	}
 	
 	/* Check values. */
@@ -104,10 +117,12 @@ static int swap_test(void)
 	free(c);
 	
 	t1 = times(&timing);
-	
-	/* Print timing statistics. */
-	if (flags & VERBOSE)
+
+	if (flags & VERBOSE){
+		printf(" Checking time: %d\n", t1 - t2);
 		printf("  Elapsed: %d\n", t1 - t0);
+	}
+	
 	
 	return (0);
 
