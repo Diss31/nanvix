@@ -60,7 +60,7 @@
 
 
 /*============================================================================*
- *                             Swapping System                                *
+ *             x                Swapping System                                *
  *============================================================================*/
 
 /**
@@ -293,45 +293,62 @@ PRIVATE struct
 PRIVATE int allocf(void)
 {
 	int i;      /* Loop index.  */
-	int oldest; /* Oldest page. */
+	int chosen; /* Chosen page. */
+
+	int foundEmpty=0; /*Boolean if there is a empty frame*/
 	
 	#define OLDEST(x, y) (frames[x].age < frames[y].age)
 	
 	/* Search for a free frame. */
-	oldest = -1;
-	for (i = 0; i < NR_FRAMES; i++)
-	{
-		/* Found it. */
-		if (frames[i].count == 0)
-			goto found;
+	chosen = -1;
+	for (i = 0; i < NR_FRAMES; i++){
+
+		/* Update age */
+		struct pte *currentPage = getpte(curr_proc,frames[i].addr);
+		if(currentPage->accessed){
+			frames[i].age = 0;
+			currentPage->accessed=0;
+		}else{
+			frames[i].age++;
+		}
+
+		/* If an empty frame was found, just update the frames ages*/
+		if(foundEmpty){
+			continue;
+		}
+
+		/* If there is a free frame. */ 
+		if (frames[i].count == 0){
+			foundEmpty=1;
+			chosen=i;
 		
-		/* Local page replacement policy. */
-		if (frames[i].owner == curr_proc->pid)
-		{
+		/* Else, apply local page replacement policy. */
+		} else if (frames[i].owner == curr_proc->pid){
+
 			/* Skip shared pages. */
 			if (frames[i].count > 1)
 				continue;
 			
 			/* Oldest page found. */
-			if ((oldest < 0) || (OLDEST(i, oldest)))
-				oldest = i;
+			if ((chosen < 0) || (OLDEST(i, chosen))){
+				chosen = i;
+			}
 		}
 	}
 	
 	/* No frame left. */
-	if (oldest < 0)
+	if (chosen < 0)
 		return (-1);
+
 	
 	/* Swap page out. */
-	if (swap_out(curr_proc, frames[i = oldest].addr))
-		return (-1);
-	
-found:		
+	if (!foundEmpty && swap_out(curr_proc, frames[chosen].addr))
+		return (-1);	
 
-	frames[i].age = ticks;
-	frames[i].count = 1;
+	frames[chosen].age = 0;
+	frames[chosen].count = 1;
 	
-	return (i);
+	return (chosen);
 }
 
 /**
