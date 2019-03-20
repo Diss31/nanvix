@@ -349,7 +349,6 @@ PRIVATE int allocf(void)
 
 	frames[chosen].age = 0;
 	frames[chosen].count = 1;
-	frames[chosen].owner = curr_proc->pid;
 	
 	return (chosen);
 }
