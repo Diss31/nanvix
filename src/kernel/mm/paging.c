@@ -290,16 +290,46 @@ PRIVATE struct
  * @returns Upon success, the number of the frame is returned. Upon failure, a
  *          negative number is returned instead.
  */
- PRIVATE int allocf(void)
+
+ #define CLOCK_TICK 20 ;
+ PUBLIC void update_plus_clear(){
+ 	int nb_frame_cleaned = 0;
+	int time = CLOCK_TICK ;
+
+
+  if(time == 0){
+		for (int i = 0; i < NR_FRAMES; i++)
+ 		{
+ 			if (frames[i].owner == curr_proc->pid)
+ 			{
+ 				struct pte* pted = getpte(curr_proc, frames[i].addr);
+ 				pted->accessed = 0;
+ 				nb_frame_cleaned++;
+ 			}
+ 		}
+		time = CLOCK_TICK ;
+	}
+   else{
+		 time--;
+	 }
+
+}
+
+
+
+
+
+
+
+PRIVATE int allocf(void)
  {
 
 
- 	static int i = 0;
+ 	 int i = 0;
 
  	struct pte *page_actuel ;
 
- 	while(1){
-
+	for (i = 0; i < NR_FRAMES; i++){
  		/* Found it. */
  		if (frames[i].count == 0 )
 			goto found;
@@ -311,17 +341,16 @@ PRIVATE struct
 		 // recuperer la page actuel
 	 		addr_t addr = (frames[i].addr) & (PAGE_MASK);
 	 		page_actuel = getpte(curr_proc, addr);
-	 	
+
 	 		if(page_actuel->dirty){ //M=1
 	    		if(page_actuel->accessed){ //R=1
-	    			page_actuel->accessed=0;	
+	    			page_actuel->accessed=0;
 	    		}
 	    		if (swap_out(curr_proc, frames[i].addr)){
 	 				return (-1);
 	 			}
 			}
 		}
- 		i=(i+1)%NR_FRAMES;
  	}
 
  found:

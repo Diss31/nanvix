@@ -21,7 +21,7 @@
 #define TIMER_H_
 
 	#include <nanvix/const.h>
-
+  
 	/* Clock frequency (in hertz). */
 	#define CLOCK_FREQ 100
 
