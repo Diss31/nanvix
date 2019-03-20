@@ -35,7 +35,7 @@
 #define VERBOSE  (1 << 2)
 
 /* Test flags. */
-static unsigned flags = VERBOSE | EXTENDED ;
+static unsigned flags = VERBOSE |EXTENDED;
 
 /*============================================================================*
  *                               swap_test                                    *
@@ -63,11 +63,11 @@ static int swap_test(void)
 		goto error1;
 	if ((c = malloc(N*N*sizeof(int))) == NULL)
 		goto error2;
-		
+
 	t0 = times(&timing);
 	
 	/* Initialize matrices. */
-	for (int i = 0; i < N*N; i++)
+	for (int i = 0; i < N*N; i++) 
 	{
 		a[i] = 1;
 		b[i] = 1;
@@ -83,11 +83,11 @@ static int swap_test(void)
 	/* Multiply matrices. */
 	if (flags & (EXTENDED | FULL))
 	{	
-		for (int i = 0; i < N; i++)
+		for (int i = 0; i < N/5; i++) //Limitation of the number of calculations
 		{
-			for (int j = 0; j < N; j++)
+			for (int j = 0; j < N/5; j++)
 			{
-					
+
 				for (int k = 0; k < N; k++)
 					c[i*N + j] += a[i*N + k]*b[k*N + j];
 			}
@@ -124,13 +124,13 @@ static int swap_test(void)
 	
 	return (0);
 
-error3:
+	error3:
 	free(c);
-error2:
+	error2:
 	free(b);
-error1:
+	error1:
 	free(a);
-error0:
+	error0:
 	return (-1);
 }
 
@@ -194,7 +194,7 @@ static void work_cpu(void)
 	int c;
 	
 	c = 0;
-		
+
 	/* Perform some computation. */
 	for (int i = 0; i < 4096; i++)
 	{
@@ -272,7 +272,7 @@ static int sched_test0(void)
 static int sched_test1(void)
 {
 	pid_t pid;
-		
+
 	pid = fork();
 	
 	/* Failed to fork(). */
@@ -293,7 +293,7 @@ static int sched_test1(void)
 		work_io();
 		_exit(EXIT_SUCCESS);
 	}
-		
+
 	wait(NULL);
 	
 	return (0);
@@ -313,7 +313,7 @@ static int sched_test2(void)
 	for (int i = 0; i < 4; i++)
 	{
 		pid[i] = fork();
-	
+
 		/* Failed to fork(). */
 		if (pid[i] < 0)
 			return (-1);
@@ -341,7 +341,7 @@ static int sched_test2(void)
 	{
 		if (i & 1)
 			wait(NULL);
-			
+
 		else
 		{	
 			kill(pid[i], SIGCONT);
@@ -374,13 +374,13 @@ static int sched_test3(void)
 	/* Wait for children. */
 	while ((child = wait(NULL)) >= 0)
 		/* noop. */;
-	
-	/* Die. */
-	if (getpid() != father)
-		_exit(EXIT_SUCCESS);
 
-	return (0);
-}
+	/* Die. */
+		if (getpid() != father)
+			_exit(EXIT_SUCCESS);
+
+		return (0);
+	}
 
 /*============================================================================*
  *                             Semaphores Test                                *
@@ -415,19 +415,19 @@ static int sched_test3(void)
  * @brief Puts an item in a buffer.
  */
 #define PUT_ITEM(a, b)                                \
-{                                                     \
-	assert(lseek((a), 0, SEEK_SET) != -1);            \
-	assert(write((a), &(b), sizeof(b)) == sizeof(b)); \
-}                                                     \
+	{                                                     \
+		assert(lseek((a), 0, SEEK_SET) != -1);            \
+		assert(write((a), &(b), sizeof(b)) == sizeof(b)); \
+	}                                                     \
 
 /**
  * @brief Gets an item from a buffer.
  */
 #define GET_ITEM(a, b)                               \
-{                                                    \
-	assert(lseek((a), 0, SEEK_SET) != -1);           \
-	assert(read((a), &(b), sizeof(b)) == sizeof(b)); \
-}                                                    \
+	{                                                    \
+		assert(lseek((a), 0, SEEK_SET) != -1);           \
+		assert(read((a), &(b), sizeof(b)) == sizeof(b)); \
+	}                                                    \
 
 /**
  * @brief Producer-Consumer problem with semaphores.
@@ -436,8 +436,8 @@ static int sched_test3(void)
  * 
  * @returns Zero if passed on test, and non-zero otherwise.
  */
-int semaphore_test3(void)
-{
+	int semaphore_test3(void)
+	{
 	pid_t pid;                  /* Process ID.              */
 	int buffer_fd;              /* Buffer file descriptor.  */
 	int empty;                  /* Empty positions.         */
@@ -445,69 +445,69 @@ int semaphore_test3(void)
 	int mutex;                  /* Mutex.                   */
 	const int BUFFER_SIZE = 32; /* Buffer size.             */
 	const int NR_ITEMS = 512;   /* Number of items to send. */
-	
+
 	/* Create buffer.*/
-	buffer_fd = open("buffer", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
-	if (buffer_fd < 0)
-		return (-1);
-	
+		buffer_fd = open("buffer", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+		if (buffer_fd < 0)
+			return (-1);
+
 	/* Create semaphores. */
-	SEM_CREATE(mutex, 1);
-	SEM_CREATE(empty, 2);
-	SEM_CREATE(full, 3);
+		SEM_CREATE(mutex, 1);
+		SEM_CREATE(empty, 2);
+		SEM_CREATE(full, 3);
 		
 	/* Initialize semaphores. */
-	SEM_INIT(full, 0);
-	SEM_INIT(empty, BUFFER_SIZE);
-	SEM_INIT(mutex, 1);
-	
-	if ((pid = fork()) < 0)
-		return (-1);
-	
+		SEM_INIT(full, 0);
+		SEM_INIT(empty, BUFFER_SIZE);
+		SEM_INIT(mutex, 1);
+
+		if ((pid = fork()) < 0)
+			return (-1);
+
 	/* Producer. */
-	else if (pid == 0)
-	{
-		for (int item = 0; item < NR_ITEMS; item++)
+		else if (pid == 0)
 		{
-			SEM_DOWN(empty);
-			SEM_DOWN(mutex);
-			
-			PUT_ITEM(buffer_fd, item);
+			for (int item = 0; item < NR_ITEMS; item++)
+			{
+				SEM_DOWN(empty);
+				SEM_DOWN(mutex);
+
+				PUT_ITEM(buffer_fd, item);
 				
-			SEM_UP(mutex);
-			SEM_UP(full);
+				SEM_UP(mutex);
+				SEM_UP(full);
+			}
+
+			_exit(EXIT_SUCCESS);
 		}
 
-		_exit(EXIT_SUCCESS);
-	}
-	
 	/* Consumer. */
-	else
-	{
-		int item;
-		
-		do
+		else
 		{
-			SEM_DOWN(full);
-			SEM_DOWN(mutex);
-			
-			GET_ITEM(buffer_fd, item);
+			int item;
+
+			do
+			{
+				SEM_DOWN(full);
+				SEM_DOWN(mutex);
+
+				GET_ITEM(buffer_fd, item);
 				
-			SEM_UP(mutex);
-			SEM_UP(empty);
-		} while (item != (NR_ITEMS - 1));
-	}
-					
+				SEM_UP(mutex);
+				SEM_UP(empty);
+			} while (item != (NR_ITEMS - 1));
+		}
+
 	/* Destroy semaphores. */
-	SEM_DESTROY(mutex);
-	SEM_DESTROY(empty);
-	SEM_DESTROY(full);
-	
-	close(buffer_fd);
-	unlink("buffer");
-	
-	return (0);
-}
+		SEM_DESTROY(mutex);
+		SEM_DESTROY(empty);
+		SEM_DESTROY(full);
+
+		close(buffer_fd);
+		unlink("buffer");
+
+		return (0);
+	}
 
 /*============================================================================*
  *                                FPU test                                    *
@@ -516,34 +516,34 @@ int semaphore_test3(void)
 /**
  * @brief Performs some dummy FPU-intensive computation.
  */
-static void work_fpu(void)
-{
+	static void work_fpu(void)
+	{
 	const int n = 16; /* Matrix size.    */
 	float a[16][16];  /* First operand.  */
 	float b[16][16];  /* Second operand. */
 	float c[16][16];  /* Result.         */
-	
+
 	/* Initialize matrices. */
-	for (int i = 0; i < n; i++)
-	{
-		for (int j = 0; j < n; j++)
+		for (int i = 0; i < n; i++)
 		{
-			a[i][j] = 1.0;
-			b[i][j] = 2.0;
-			c[i][j] = 0.0;
+			for (int j = 0; j < n; j++)
+			{
+				a[i][j] = 1.0;
+				b[i][j] = 2.0;
+				c[i][j] = 0.0;
+			}
 		}
-	}
-	
+
 	/* Perform matrix multiplication. */
-	for (int i = 0; i < n; i++)
-	{
-		for (int j = 0; j < n; j++)
+		for (int i = 0; i < n; i++)
 		{
-			for (int k = 0; k < n; k++)
-				c[i][j] += a[i][k]*b[k][i];
+			for (int j = 0; j < n; j++)
+			{
+				for (int k = 0; k < n; k++)
+					c[i][j] += a[i][k]*b[k][i];
+			}
 		}
 	}
-}
 
 /**
  * @brief FPU testing module.
@@ -553,51 +553,51 @@ static void work_fpu(void)
  * 
  * @returns Zero if passed on test, and non-zero otherwise.
  */
-int fpu_test(void)
-{
+	int fpu_test(void)
+	{
 	pid_t pid;     /* Child process ID.     */
 	float a = 6.7; /* First dummy operand.  */
 	float b = 1.2; /* Second dummy operand. */
 	float result;  /* Result.               */
-	
-	/* Perform a/b */
-	__asm__ volatile(
-		"flds %1;"
-		"flds %0;"
-		"fdivrp %%st,%%st(1);"
-		: /* noop. */
-		: "m" (b), "m" (a)
-	);
 
-	pid = fork();
-	
+	/* Perform a/b */
+		__asm__ volatile(
+			"flds %1;"
+			"flds %0;"
+			"fdivrp %%st,%%st(1);"
+		: /* noop. */
+			: "m" (b), "m" (a)
+			);
+
+		pid = fork();
+
 	/* Failed to fork(). */
-	if (pid < 0)
-		return (-1);
-	
+		if (pid < 0)
+			return (-1);
+
 	/*
 	 * Child process tries
 	 * to mess up the stack.
 	 */
-	else if (pid == 0)
-	{
-		work_fpu();
-		_exit(EXIT_SUCCESS);
-	}
-	
-	wait(NULL);
+		else if (pid == 0)
+		{
+			work_fpu();
+			_exit(EXIT_SUCCESS);
+		}
+
+		wait(NULL);
 
 	/* But it's only in your context,
 	 * so nothing changed for father process.
 	 */
-	__asm__ volatile(
-		"fstps %0;"
-		: "=m" (result)
-	);
+		__asm__ volatile(
+			"fstps %0;"
+			: "=m" (result)
+			);
 
 	/* 0x40b2aaaa = 6.7/1.2 = 5.5833.. */
-	return (result == 0x40b2aaaa);
-}
+		return (result == 0x40b2aaaa);
+	}
 
 
 /*============================================================================*
@@ -609,80 +609,80 @@ int fpu_test(void)
  * 
  * @details Prints the program usage and exists gracefully.
  */
-static void usage(void)
-{
-	printf("Usage: test [options]\n\n");
-	printf("Brief: Performs regression tests on Nanvix.\n\n");
-	printf("Options:\n");
-	printf("  fpu   Floating Point Unit Test\n");
-	printf("  io    I/O Test\n");
-	printf("  ipc   Interprocess Communication Test\n");
-	printf("  swp   Swapping Test\n");
-	printf("  sched Scheduling Test\n");
-	
-	exit(EXIT_SUCCESS);
-}
+	static void usage(void)
+	{
+		printf("Usage: test [options]\n\n");
+		printf("Brief: Performs regression tests on Nanvix.\n\n");
+		printf("Options:\n");
+		printf("  fpu   Floating Point Unit Test\n");
+		printf("  io    I/O Test\n");
+		printf("  ipc   Interprocess Communication Test\n");
+		printf("  swp   Swapping Test\n");
+		printf("  sched Scheduling Test\n");
+
+		exit(EXIT_SUCCESS);
+	}
 
 /**
  * @brief System testing utility.
  */
-int main(int argc, char **argv)
-{
-	/* Missing arguments? */
-	if (argc <= 1)
-		usage();
-
-	for (int i = 1; i < argc; i++)
+	int main(int argc, char **argv)
 	{
+	/* Missing arguments? */
+		if (argc <= 1)
+			usage();
+
+		for (int i = 1; i < argc; i++)
+		{
 		/* I/O test. */
-		if (!strcmp(argv[i], "io"))
-		{
-			printf("I/O Test\n");
-			printf("  Result:             [%s]\n", 
-				(!io_test()) ? "PASSED" : "FAILED");
-		}
-		
+			if (!strcmp(argv[i], "io"))
+			{
+				printf("I/O Test\n");
+				printf("  Result:             [%s]\n", 
+					(!io_test()) ? "PASSED" : "FAILED");
+			}
+
 		/* Swapping test. */
-		else if (!strcmp(argv[i], "swp"))
-		{
-			printf("Swapping Test\n");
-			printf("  Result:             [%s]\n",
-				(!swap_test()) ? "PASSED" : "FAILED");
-		}
-		
+			else if (!strcmp(argv[i], "swp"))
+			{
+				printf("Swapping Test\n");
+				printf("  Result:             [%s]\n",
+					(!swap_test()) ? "PASSED" : "FAILED");
+			}
+
 		/* Scheduling test. */
-		else if (!strcmp(argv[i], "sched"))
-		{
-			printf("Scheduling Tests\n");
-			printf("  waiting for child  [%s]\n",
-				(!sched_test0()) ? "PASSED" : "FAILED");
-			printf("  dynamic priorities [%s]\n",
-				(!sched_test1()) ? "PASSED" : "FAILED");
-			printf("  scheduler stress   [%s]\n",
-				(!sched_test2() && !sched_test3()) ? "PASSED" : "FAILED");
-		}
-		
+			else if (!strcmp(argv[i], "sched"))
+			{
+				printf("Scheduling Tests\n");
+				printf("  waiting for child  [%s]\n",
+					(!sched_test0()) ? "PASSED" : "FAILED");
+				printf("  dynamic priorities [%s]\n",
+					(!sched_test1()) ? "PASSED" : "FAILED");
+				printf("  scheduler stress   [%s]\n",
+					(!sched_test2() && !sched_test3()) ? "PASSED" : "FAILED");
+			}
+
 		/* IPC test. */
-		else if (!strcmp(argv[i], "ipc"))
-		{
-			printf("Interprocess Communication Tests\n");
-			printf("  producer consumer [%s]\n",
-				(!semaphore_test3()) ? "PASSED" : "FAILED");
-		}
+			else if (!strcmp(argv[i], "ipc"))
+			{
+				printf("Interprocess Communication Tests\n");
+				printf("  producer consumer [%s]\n",
+					(!semaphore_test3()) ? "PASSED" : "FAILED");
+			}
 
 		/* FPU test. */
-		else if (!strcmp(argv[i], "fpu"))
-		{
-			printf("Float Point Unit Test\n");
-			printf("  Result [%s]\n",
-				(!fpu_test()) ? "PASSED" : "FAILED");
-		}
-	
-	
+			else if (!strcmp(argv[i], "fpu"))
+			{
+				printf("Float Point Unit Test\n");
+				printf("  Result [%s]\n",
+					(!fpu_test()) ? "PASSED" : "FAILED");
+			}
+
+
 		/* Wrong usage. */
-		else
-			usage();
+			else
+				usage();
+		}
+
+		return (EXIT_SUCCESS);
 	}
-	
-	return (EXIT_SUCCESS);
-}
