@@ -279,17 +279,16 @@ PUBLIC void putkpg(void *kpg)
 PRIVATE struct
 {
 	unsigned count; /**< Reference count.     */
-	unsigned age;   /**< Age.                 */
 	pid_t owner;    /**< Page owner.          */
 	addr_t addr;    /**< Address of the page. */
-} frames[NR_FRAMES] = {{0, 0, 0, 0},  };
+} frames[NR_FRAMES] = {{0, 0, 0},  };
 
-int pointer; /* Index of the page */
+int index = 0; /* Index of the page */
 
-PRIVATE void search_index(void){
+PRIVATE void search_next_valid_index(void){
 	do{
-		pointer = (pointer+1)%NR_FRAMES;
-	} while((frames[pointer].owner != curr_proc->pid) || (frames[pointer].count > 1));
+		index = (index+1)%NR_FRAMES;
+	} while((frames[index].owner != curr_proc->pid) || (frames[index].count > 1));
 
 }
 
@@ -301,10 +300,9 @@ PRIVATE void search_index(void){
  */
 PRIVATE int allocf(void)
 {
-	int i;      /* Loop index.  */
-	addr_t addr; /* Address of the page */
-	struct pte *pg; /* Page table entry. */
+	int i; 
 
+	/* A AMELIORER */
 	/* Search for a free frame. */
 	for (i = 0; i < NR_FRAMES; i++)
 	{
@@ -313,26 +311,27 @@ PRIVATE int allocf(void)
 			goto found;
 	}
 	
-	search_index();
-	addr= (frames[pointer].addr) & (PAGE_MASK);
-	pg = getpte(curr_proc, addr);
+	search_next_valid_index();
+	addr_t addr= (frames[index].addr) & (PAGE_MASK);
+	struct pte *pg = getpte(curr_proc, addr);
 
-	while(pg->accessed){
-		/* the frame had a second chance but no longer */
+	while(pg->accessed){ //While the current frame has a second chance
+		// Take out its second chance
 		pg->accessed=0;
 
-		
-		search_index();
-		addr= (frames[pointer].addr) & (PAGE_MASK);
+		search_next_valid_index();
+		addr= (frames[index].addr) & (PAGE_MASK);
 		pg = getpte(curr_proc, addr);
 	}
 
+	//When we find a frame without second chance
+	i = index;
+
 	/* Swap page out. */
-	if (swap_out(curr_proc, frames[pointer].addr))
+	if (swap_out(curr_proc, frames[i].addr))
 		return (-1);
 found:		
 
-	frames[i].age = ticks;
 	frames[i].count = 1;
 	
 	return (i);
