@@ -295,7 +295,7 @@ PRIVATE int allocf(void)
 	int i;      /* Loop index.  */
 	int chosen; /* Chosen page. */
 
-	int foundEmpty=0; /*Boolean if there is a empty frame*/
+	int foundEmpty=0; /*Boolean if an empty frame was found*/
 	
 	#define OLDEST(x, y) (frames[x].age < frames[y].age)
 	
@@ -303,13 +303,15 @@ PRIVATE int allocf(void)
 	chosen = -1;
 	for (i = 0; i < NR_FRAMES; i++){
 
-		/* Update age */
-		struct pte *currentPage = getpte(curr_proc,frames[i].addr);
-		if(currentPage->accessed){
-			frames[i].age = 0;
-			currentPage->accessed=0;
-		}else{
-			frames[i].age++;
+		if(frames[i].count>0){ //If the frame is used
+			/* Update age */
+			struct pte *currentPage = getpte(curr_proc,frames[i].addr);
+			if(currentPage->accessed){
+				frames[i].age = 0;
+				currentPage->accessed=0;
+			}else{
+				frames[i].age++;
+			}
 		}
 
 		/* If an empty frame was found, just update the frames ages*/
@@ -330,18 +332,18 @@ PRIVATE int allocf(void)
 				continue;
 			
 			/* Oldest page found. */
-			if ((chosen < 0) || (OLDEST(i, chosen))){
+			if ((chosen < 0) || (OLDEST(chosen,i))){
 				chosen = i;
 			}
 		}
 	}
 	
-	/* No frame left. */
+	/* No frame found. */
 	if (chosen < 0)
 		return (-1);
 
 	
-	/* Swap page out. */
+	/* Swap page out if we didn't find an empty frame. */
 	if (!foundEmpty && swap_out(curr_proc, frames[chosen].addr))
 		return (-1);	
 
