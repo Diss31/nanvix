@@ -308,9 +308,10 @@ PRIVATE struct
  		page_actuel = getpte(curr_proc, frames[i].addr);
 
     // si
- 		if(page_actuel->accessed==1){
+ 		if(page_actuel->accessed==1 && page_actuel->dirty!=0){
  			page_actuel->accessed=0;
- 		} else {
+ 		} else if(! page_actuel->accessed)
+		{
 
  				/* Local page replacement policy. */
  			if (frames[i].owner == curr_proc->pid)
@@ -321,14 +322,16 @@ PRIVATE struct
 
  				page_actuel = getpte(curr_proc, frames[i].addr);
          // on teste si notre page n'est pas déja acceder
- 				if(!page_actuel->accessed){
+ 				if(page_actuel->dirty==1){
 
  					if (swap_out(curr_proc, frames[i].addr)){
  						return (-1);
  					}
  					goto found;
 
- 				} else {
+ 				} else if(page_actuel->dirty==0)
+        // if(page_actuel->dirty == 0)
+				{
  					page_actuel->accessed =  0;
  				}
 
