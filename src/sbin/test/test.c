@@ -35,7 +35,7 @@
 #define VERBOSE  (1 << 2)
 
 /* Test flags. */
-static unsigned flags = VERBOSE; //| FULL;
+static unsigned flags = VERBOSE;
 
 /*============================================================================*
  *                               swap_test                                    *
@@ -119,8 +119,8 @@ static int swap_test(void)
 	t1 = times(&timing);
 
 	if (flags & VERBOSE){
-		printf(" Checking time: %d\n", t1 - t2);
-		printf("  Elapsed: %d\n", t1 - t0);
+		printf(" Checking time and house keeping: %d\n", t1 - t2);
+		printf(" Elapsed: %d\n", t1 - t0);
 	}
 	
 	
