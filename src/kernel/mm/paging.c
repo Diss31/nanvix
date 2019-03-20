@@ -286,10 +286,11 @@ PRIVATE struct
 
 int pointer; /* Index of the page */
 
-PRIVATE void search_index(void){
+PRIVATE void get_page_from_index(void){
 	do{
 		pointer = (pointer+1)%NR_FRAMES;
-	} while(frames[pointer].owner != curr_proc->pid);
+	} while((frames[pointer].owner != curr_proc->pid) || (frames[pointer].count > 1));
+	
 }
 
 /**
@@ -301,50 +302,40 @@ PRIVATE void search_index(void){
 PRIVATE int allocf(void)
 {
 	int i;      /* Loop index.  */
-	int oldest; /* Oldest page. */
+	addr_t addr; /* Address of the page */
 	struct pte *pg; /* Page table entry. */
-	#define OLDEST(x, y) (frames[x].age < frames[y].age)
 
 	/* Search for a free frame. */
-	oldest = -1;
 	for (i = 0; i < NR_FRAMES; i++)
 	{
 		/* Found it. */
-		if (frames[i%NR_FRAMES].count == 0)
+		if (frames[i].count == 0)
 			goto found;
 	}
-	search_index();
-	addr_t addr= (frames[pointer].addr) & (PAGE_MASK);
+	
+	get_page_from_index();
+	addr= (frames[pointer].addr) & PAGE_MASK;
 	pg = getpte(curr_proc, addr);
-
 	while(pg->accessed){
-		/* Skip shared pages. */
-		if (frames[pointer].count > 1)
-				continue;
-
 		/* the frame had a second chance but no longer */
 		pg->accessed=0;
 
-		/* Oldest page found. */
-		if ((oldest < 0) || (OLDEST(pointer, oldest)))
-			oldest = pointer;
-	}
-	/* No frame left. */
-	if (oldest < 0){
-		return (-1);
+		get_page_from_index();
+		addr= (frames[pointer].addr) & PAGE_MASK;
+		pg = getpte(curr_proc, addr);
 	}
 	
 	/* Swap page out. */
-	if (swap_out(curr_proc, frames[i = oldest].addr)){
+	if (swap_out(curr_proc, frames[pointer].addr)){
 		return (-1);
 	}
 	
 found:		
 
-	frames[i%NR_FRAMES].age = ticks;
-	frames[i%NR_FRAMES].count = 1;
+	frames[i].age = ticks;
+	frames[i].count = 1;
 	
-	return (i%NR_FRAMES);
+	return (i);
 }
 
 /**
