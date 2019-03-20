@@ -305,45 +305,19 @@ PRIVATE struct
  			goto found;
 
 	 // recuperer la page actuel
+ 	//	addr_t addr = (frames[i].addr) & (PAGE_MASK);
  		page_actuel = getpte(curr_proc, frames[i].addr);
 
-    // si
- 		if(page_actuel->accessed==1 && page_actuel->dirty!=0){
- 			page_actuel->accessed=0;
- 		} else if(! page_actuel->accessed)
-		{
-
- 				/* Local page replacement policy. */
- 			if (frames[i].owner == curr_proc->pid)
- 			{
- 				/* Skip shared pages. */
- 				if (frames[i].count > 1)
- 					continue;
-
- 				page_actuel = getpte(curr_proc, frames[i].addr);
-         // on teste si notre page n'est pas déja acceder
- 				if(page_actuel->dirty==1){
-
- 					if (swap_out(curr_proc, frames[i].addr)){
- 						return (-1);
- 					}
- 					goto found;
-
- 				} else if(page_actuel->dirty==0)
-        // if(page_actuel->dirty == 0)
-				{
- 					page_actuel->accessed =  0;
- 				}
-
+ 		if(page_actuel->dirty){ //M=1
+    		if(page_actuel->accessed){ //R=1
+    			page_actuel->accessed=0;	
+    		}
+    		if (swap_out(curr_proc, frames[i].addr)){
+ 				return (-1);
  			}
- 		}
+		}
 
-
-
- 		i++;
-
- 		i=i%NR_FRAMES;
-
+ 		i=(i+1)%NR_FRAMES;
  	}
 
  found:
