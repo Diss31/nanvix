@@ -35,7 +35,7 @@
 #define VERBOSE  (1 << 2)
 
 /* Test flags. */
-static unsigned flags = VERBOSE;
+static unsigned flags = VERBOSE | EXTENDED;
 
 /*============================================================================*
  *                               swap_test                                    *
@@ -84,9 +84,9 @@ static int swap_test(void)
 	/* Multiply matrices. */
 	if (flags & (EXTENDED | FULL))
 	{	
-		for (int i = 0; i < N; i++)
+		for (int i = 0; i < N /5; i++) //Limitations of calculations
 		{
-			for (int j = 0; j < N; j++)
+			for (int j = 0; j < N/5; j++)
 			{
 					
 				for (int k = 0; k < N; k++)
