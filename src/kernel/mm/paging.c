@@ -301,22 +301,26 @@ PRIVATE struct
  	while(1){
 
  		/* Found it. */
- 		if (frames[i].count == 0)
- 			goto found;
+ 		if (frames[i].count == 0 )
+			goto found;
 
-	 // recuperer la page actuel
- 	//	addr_t addr = (frames[i].addr) & (PAGE_MASK);
- 		page_actuel = getpte(curr_proc, frames[i].addr);
+		if(frames[i].owner == curr_proc->pid) {
+			if (frames[i].count > 1)
+				continue;
 
- 		if(page_actuel->dirty){ //M=1
-    		if(page_actuel->accessed){ //R=1
-    			page_actuel->accessed=0;	
-    		}
-    		if (swap_out(curr_proc, frames[i].addr)){
- 				return (-1);
- 			}
+		 // recuperer la page actuel
+	 		addr_t addr = (frames[i].addr) & (PAGE_MASK);
+	 		page_actuel = getpte(curr_proc, addr);
+	 	
+	 		if(page_actuel->dirty){ //M=1
+	    		if(page_actuel->accessed){ //R=1
+	    			page_actuel->accessed=0;	
+	    		}
+	    		if (swap_out(curr_proc, frames[i].addr)){
+	 				return (-1);
+	 			}
+			}
 		}
-
  		i=(i+1)%NR_FRAMES;
  	}
 
