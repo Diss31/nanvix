@@ -284,10 +284,9 @@ PRIVATE struct
 	addr_t addr;    /**< Address of the page. */
 } frames[NR_FRAMES] = {{0, 0, 0, 0},  };
 
-int page_def_number=0;
-int pointer;
+int pointer; /* Index of the page */
 
-void add_frame(void){
+PRIVATE void search_index(void){
 	do{
 		pointer = (pointer+1)%NR_FRAMES;
 	} while(frames[pointer].owner != curr_proc->pid);
@@ -305,50 +304,36 @@ PRIVATE int allocf(void)
 	int oldest; /* Oldest page. */
 	struct pte *pg; /* Page table entry. */
 	#define OLDEST(x, y) (frames[x].age < frames[y].age)
+
 	/* Search for a free frame. */
 	oldest = -1;
 	for (i = 0; i < NR_FRAMES; i++)
-	//for (i = ((curr_proc->last)+1)%NR_FRAMES; i != (curr_proc->last); i=(i+1)%NR_FRAMES) //on fait un tour du tableau à partir de la page après celle du processeur courant
 	{
 		/* Found it. */
 		if (frames[i%NR_FRAMES].count == 0)
 			goto found;
 	}
-	add_frame();
-	addr_t addr=frames[pointer].addr & PAGE_MASK;
+	search_index();
+	addr_t addr= (frames[pointer].addr) & (PAGE_MASK);
 	pg = getpte(curr_proc, addr);
 
 	while(pg->accessed){
+		/* Skip shared pages. */
 		if (frames[pointer].count > 1)
 				continue;
+
+		/* the frame had a second chance but no longer */
 		pg->accessed=0;
+
+		/* Oldest page found. */
 		if ((oldest < 0) || (OLDEST(pointer, oldest)))
 			oldest = pointer;
 	}
-
-		/* Local page replacement policy. */
-		/*if (frames[pointer].owner == curr_proc->pid)
-		{*/
-			/* Skip shared pages. */
-			
-
-			/*if(pg->accessed == 1){
-				pg->accessed = 0;
-			} else {*/
-				/* Oldest page found. */
-				/*if ((oldest < 0) || (OLDEST(pointer, oldest)))
-					oldest = pointer;
-			}
-		}
-	}*/
-
 	/* No frame left. */
 	if (oldest < 0){
 		return (-1);
 	}
 	
-	page_def_number++;
-	kprintf("D-%d", page_def_number);
 	/* Swap page out. */
 	if (swap_out(curr_proc, frames[i = oldest].addr)){
 		return (-1);
