@@ -286,11 +286,11 @@ PRIVATE struct
 
 int pointer; /* Index of the page */
 
-PRIVATE void get_page_from_index(void){
+PRIVATE void search_index(void){
 	do{
 		pointer = (pointer+1)%NR_FRAMES;
 	} while((frames[pointer].owner != curr_proc->pid) || (frames[pointer].count > 1));
-	
+
 }
 
 /**
@@ -313,23 +313,23 @@ PRIVATE int allocf(void)
 			goto found;
 	}
 	
-	get_page_from_index();
-	addr= (frames[pointer].addr) & PAGE_MASK;
+	search_index();
+	addr= (frames[pointer].addr) & (PAGE_MASK);
 	pg = getpte(curr_proc, addr);
+
 	while(pg->accessed){
 		/* the frame had a second chance but no longer */
 		pg->accessed=0;
 
-		get_page_from_index();
-		addr= (frames[pointer].addr) & PAGE_MASK;
+		
+		search_index();
+		addr= (frames[pointer].addr) & (PAGE_MASK);
 		pg = getpte(curr_proc, addr);
 	}
-	
+
 	/* Swap page out. */
-	if (swap_out(curr_proc, frames[pointer].addr)){
+	if (swap_out(curr_proc, frames[pointer].addr))
 		return (-1);
-	}
-	
 found:		
 
 	frames[i].age = ticks;
