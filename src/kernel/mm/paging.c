@@ -284,7 +284,7 @@ PRIVATE struct
 } frames[NR_FRAMES] = {{0, 0, 0},  };
 
 int index = 0; /* Index of the page */
-
+int compteur=0; /* Number of page frames */
 PRIVATE void search_next_valid_index(void){
 	do{
 		index = (index+1)%NR_FRAMES;
@@ -300,17 +300,19 @@ PRIVATE void search_next_valid_index(void){
  */
 PRIVATE int allocf(void)
 {
-	int i; 
-
-	/* A AMELIORER */
+	int i;
 	/* Search for a free frame. */
-	for (i = 0; i < NR_FRAMES; i++)
-	{
-		/* Found it. */
-		if (frames[i].count == 0)
-			goto found;
+	if(compteur<NR_FRAMES){
+		
+		kprintf("%d", compteur);
+		for (i = 0; i < NR_FRAMES; i++)
+		{
+			/* Found it. */
+			if (frames[i].count == 0){
+				goto found;
+			}
+		}
 	}
-	
 	search_next_valid_index();
 	addr_t addr= (frames[index].addr) & (PAGE_MASK);
 	struct pte *pg = getpte(curr_proc, addr);
@@ -327,13 +329,14 @@ PRIVATE int allocf(void)
 	//When we find a frame without second chance
 	i = index;
 
+
 	/* Swap page out. */
 	if (swap_out(curr_proc, frames[i].addr))
 		return (-1);
 found:		
 
 	frames[i].count = 1;
-	
+	compteur++;
 	return (i);
 }
 
