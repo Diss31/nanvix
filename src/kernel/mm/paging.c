@@ -295,7 +295,7 @@ PRIVATE struct
 
 
  #define CLOCK_TICK 20
-int time = CLOCK_TICK ;
+int time = 0 ;
  PUBLIC void update_plus_clear(){
   if(time == 0){
 	for (int i = 0; i < NR_FRAMES; i++)
@@ -315,11 +315,11 @@ PRIVATE int allocf(void)
  {
  	int i ;
 	int pagetoswap=-1;
-	struct pte *page_actuel ;
 	#define HIGHER_PRIORITY(x, y) (x->accessed < y-> accessed || x->dirty < y->dirty)
 	#define SAME_PRIORITY(x, y) (x->accessed == y-> accessed && x->dirty == y->dirty)
-	struct pte *page_comparee ;
+
 	for (i = 0; i < NR_FRAMES; i++){
+
  		/* Found it. */
  		if (frames[i].count == 0 )
 			goto found;
@@ -330,21 +330,26 @@ PRIVATE int allocf(void)
 
 			addr_t addr = (frames[i].addr) & (PAGE_MASK);
 
-			addr_t addrtoswap = (frames[pagetoswap].addr) & (PAGE_MASK);
-	 		page_actuel = getpte(curr_proc, addr);
-	 		page_comparee = getpte(curr_proc, addrtoswap);
-	 		
-	 		if ((pagetoswap < 0) || HIGHER_PRIORITY(page_actuel,page_comparee))
-	 			pagetoswap = i;
-	 		else if(SAME_PRIORITY(page_actuel,page_comparee)){
-	 			if(krand()%2 == 0){
-	 				pagetoswap=i;
+	 		struct pte *page_actuel = getpte(curr_proc, addr);
+	 		if (pagetoswap < 0){
+	 			pagetoswap=i;
+	 		}
+	 		else{
+				addr_t addrtoswap = (frames[pagetoswap].addr) & (PAGE_MASK);
+	 			struct pte *page_comparee = getpte(curr_proc, addrtoswap);
+	 			if (HIGHER_PRIORITY(page_actuel,page_comparee)){
+	 				pagetoswap = i;
+	 			}
+	 			else if(SAME_PRIORITY(page_actuel,page_comparee)){
+	 				if(krand()%2 == 0){
+	 					pagetoswap=i;
+	 				}
 	 			}
 	 		}
-	}
 		}
+	}
 
-if (pagetoswap < 0)
+	if (pagetoswap < 0)
 		return (-1);
 /* Swap page out. */
 	if (swap_out(curr_proc, frames[i=pagetoswap].addr))
