@@ -67,7 +67,7 @@
 	EXTERN void putkpg(void *);
 	EXTERN void mm_init(void);
 	EXTERN void *getkpg(int);
-	EXTERN void update_clearing_trigger();
+	EXTERN void update_plus_clear();
 #endif /* _ASM_FILE_ */
 
 #endif /* MM_H_ */

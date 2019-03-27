@@ -291,24 +291,27 @@ PRIVATE struct
  *          negative number is returned instead.
  */
 
+
+
+
  #define CLOCK_TICK 20 ;
  PUBLIC void update_plus_clear(){
+
  	int nb_frame_cleaned = 0;
 	int time = CLOCK_TICK ;
-
-
   if(time == 0){
-		for (int i = 0; i < NR_FRAMES; i++)
- 		{
- 			if (frames[i].owner == curr_proc->pid)
+			for (int i = 0; i < NR_FRAMES; i++)
  			{
- 				struct pte* pted = getpte(curr_proc, frames[i].addr);
- 				pted->accessed = 0;
- 				nb_frame_cleaned++;
+ 				if (frames[i].owner == curr_proc->pid)
+ 				{
+ 					struct pte* page = getpte(curr_proc, frames[i].addr);
+ 					page->accessed = 0;
+ 					nb_frame_cleaned++;
+ 				}
  			}
- 		}
-		time = CLOCK_TICK ;
-	}
+	  	nb_frame_cleaned = 0;
+			time = CLOCK_TICK ;
+		}
    else{
 		 time--;
 	 }
@@ -323,42 +326,64 @@ PRIVATE struct
 
 PRIVATE int allocf(void)
  {
-
-
- 	 int i = 0;
-
- 	struct pte *page_actuel ;
+ 	int i ;
+	int j = 0 ;
+	struct pte *page_actuel ;
 
 	for (i = 0; i < NR_FRAMES; i++){
  		/* Found it. */
- 		if (frames[i].count == 0 )
-			goto found;
+ 			if (frames[i].count == 0 )
+				goto found;
+}
+for (;j < NR_FRAMES; j++){
 
-		if(frames[i].owner == curr_proc->pid) {
-			if (frames[i].count > 1)
-				continue;
+			if(frames[j].owner == curr_proc->pid) {
+				if (frames[j].count > 1)
+					continue;
 
 		 // recuperer la page actuel
-	 		addr_t addr = (frames[i].addr) & (PAGE_MASK);
-	 		page_actuel = getpte(curr_proc, addr);
+	 			addr_t addr = (frames[j].addr) & (PAGE_MASK);
+	 			page_actuel = getpte(curr_proc, addr);
 
-	 		if(page_actuel->dirty){ //M=1
-	    		if(page_actuel->accessed){ //R=1
-	    			page_actuel->accessed=0;
-	    		}
-	    		if (swap_out(curr_proc, frames[i].addr)){
-	 				return (-1);
-	 			}
-			}
-		}
- 	}
+      // R = 0 M = 0  	Class 0
+      	if(!page_actuel->dirty && !page_actuel->accessed){
+				 	goto found ;
+				}
+			// R = 0 et M = 1  	CLass 1
+				if(page_actuel->dirty && !page_actuel->accessed){
+					goto swap ;
+				}
+			// R = 1 et M = 0 	Class 2
+				if(!page_actuel->dirty && page_actuel->accessed){
+				 		goto found ;
+				}
+
+			// R = 1 et M = 1 	Class 3
+				if(page_actuel->dirty && page_actuel->accessed){
+						goto swap ;
+					}
+	}
+}
+
+swap:
+
+	if (swap_out(curr_proc, frames[j].addr)){
+		return (-1);
+	}
+
+
 
  found:
 
+ 	kprintf("[MM] Trying to swap page %d", i);
  	frames[i].age = ticks;
  	frames[i].count = 1;
 
  	return (i);
+
+
+
+
 
  }
 
