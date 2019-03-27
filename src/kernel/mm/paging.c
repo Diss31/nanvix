@@ -284,6 +284,8 @@ PRIVATE struct
 	addr_t addr;    /**< Address of the page. */
 } frames[NR_FRAMES] = {{0, 0, 0, 0},  };
 
+PRIVATE int nbFramesAllocated = 0;
+
 /**
  * @brief Allocates a page frame.
  * 
@@ -296,12 +298,20 @@ PRIVATE int allocf(void)
 	int chosen; /* Chosen page. */
 
 	int foundEmpty=0; /*Boolean if an empty frame was found*/
+
+	int nbFramesUpdated = 0;
 	
 	#define OLDEST(x, y) (frames[x].age < frames[y].age)
 	
 	/* Search for a free frame. */
 	chosen = -1;
 	for (i = 0; i < NR_FRAMES; i++){
+
+		if(nbFramesUpdated==nbFramesAllocated){
+			if(foundEmpty){
+				goto alloc;
+			}
+		}
 
 		if(frames[i].count>0){ //If the frame is used
 			/* Update age */
@@ -312,6 +322,7 @@ PRIVATE int allocf(void)
 			}else{
 				frames[i].age++;
 			}
+			nbFramesUpdated++;
 		}
 
 		/* If an empty frame was found, just update the frames ages*/
@@ -339,16 +350,21 @@ PRIVATE int allocf(void)
 	}
 	
 	/* No frame found. */
-	if (chosen < 0)
+	if (chosen < 0){
 		return (-1);
+	}
 
 	
 	/* Swap page out if we didn't find an empty frame. */
 	if (!foundEmpty && swap_out(curr_proc, frames[chosen].addr))
 		return (-1);	
 
+alloc:
 	frames[chosen].age = 0;
 	frames[chosen].count = 1;
+	if(foundEmpty){
+		nbFramesAllocated++;
+	} 
 	
 	return (chosen);
 }
