@@ -294,97 +294,67 @@ PRIVATE struct
 
 
 
- #define CLOCK_TICK 20 ;
+ #define CLOCK_TICK 20
+int time = CLOCK_TICK ;
  PUBLIC void update_plus_clear(){
-
- 	int nb_frame_cleaned = 0;
-	int time = CLOCK_TICK ;
   if(time == 0){
-			for (int i = 0; i < NR_FRAMES; i++)
- 			{
- 				if (frames[i].owner == curr_proc->pid)
- 				{
- 					struct pte* page = getpte(curr_proc, frames[i].addr);
- 					page->accessed = 0;
- 					nb_frame_cleaned++;
- 				}
- 			}
-	  	nb_frame_cleaned = 0;
-			time = CLOCK_TICK ;
-		}
-   else{
-		 time--;
-	 }
+	for (int i = 0; i < NR_FRAMES; i++)
+ 	{		
+ 		struct pte* page = getpte(curr_proc, frames[i].addr);
+ 		page->accessed = 0;
+ 	}
+	time = CLOCK_TICK ;
+  }
+  else{
+	 time--;
+  }
 
 }
-
-
-
-
-
-
 
 PRIVATE int allocf(void)
  {
  	int i ;
-	int j = 0 ;
+	int pagetoswap=-1;
 	struct pte *page_actuel ;
-
+	#define HIGHER_PRIORITY(x, y) (x->accessed < y-> accessed || x->dirty < y->dirty)
+	#define SAME_PRIORITY(x, y) (x->accessed == y-> accessed && x->dirty == y->dirty)
+	struct pte *page_comparee ;
 	for (i = 0; i < NR_FRAMES; i++){
  		/* Found it. */
- 			if (frames[i].count == 0 )
-				goto found;
-}
-for (;j < NR_FRAMES; j++){
+ 		if (frames[i].count == 0 )
+			goto found;
 
-			if(frames[j].owner == curr_proc->pid) {
-				if (frames[j].count > 1)
-					continue;
+		if(frames[i].owner == curr_proc->pid) {
+			if (frames[i].count > 1)
+				continue;
 
-		 // recuperer la page actuel
-	 			addr_t addr = (frames[j].addr) & (PAGE_MASK);
-	 			page_actuel = getpte(curr_proc, addr);
+			addr_t addr = (frames[i].addr) & (PAGE_MASK);
 
-      // R = 0 M = 0  	Class 0
-      	if(!page_actuel->dirty && !page_actuel->accessed){
-				 	goto found ;
-				}
-			// R = 0 et M = 1  	CLass 1
-				if(page_actuel->dirty && !page_actuel->accessed){
-					goto swap ;
-				}
-			// R = 1 et M = 0 	Class 2
-				if(!page_actuel->dirty && page_actuel->accessed){
-				 		goto found ;
-				}
-
-			// R = 1 et M = 1 	Class 3
-				if(page_actuel->dirty && page_actuel->accessed){
-						goto swap ;
-					}
+			addr_t addrtoswap = (frames[pagetoswap].addr) & (PAGE_MASK);
+	 		page_actuel = getpte(curr_proc, addr);
+	 		page_comparee = getpte(curr_proc, addrtoswap);
+	 		
+	 		if ((pagetoswap < 0) || HIGHER_PRIORITY(page_actuel,page_comparee))
+	 			pagetoswap = i;
+	 		else if(SAME_PRIORITY(page_actuel,page_comparee)){
+	 			if(krand()%2 == 0){
+	 				pagetoswap=i;
+	 			}
+	 		}
 	}
-}
+		}
 
-swap:
-
-	if (swap_out(curr_proc, frames[j].addr)){
+if (pagetoswap < 0)
 		return (-1);
-	}
-
-
+/* Swap page out. */
+	if (swap_out(curr_proc, frames[i=pagetoswap].addr))
+		return (-1);
 
  found:
-
- 	kprintf("[MM] Trying to swap page %d", i);
  	frames[i].age = ticks;
  	frames[i].count = 1;
 
  	return (i);
-
-
-
-
-
  }
 
 /**
