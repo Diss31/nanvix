@@ -106,6 +106,8 @@ PRIVATE int swap_out(struct process *proc, addr_t addr)
 	off_t off;      /* Offset in swap device.        */
 	ssize_t n;      /* # bytes written.              */
 	void *kpg;      /* Kernel page used for copying. */
+
+	kprintf("SWAP : proc pid %d  addr %d",proc->pid, addr);
 	
 	addr &= PAGE_MASK;
 	pg = getpte(proc, addr);
@@ -118,16 +120,18 @@ PRIVATE int swap_out(struct process *proc, addr_t addr)
 	blk = bitmap_first_free(swap.bitmap, (SWP_SIZE/PAGE_SIZE) >> 3);
 	if (blk == BITMAP_FULL)
 		goto error1;
-	
 	/*
 	 * Set block on swap device as used
 	 * in advance, because we may sleep below.
 	 */
 	off = HDD_SIZE + blk*PAGE_SIZE;
 	bitmap_set(swap.bitmap, blk);
+
+	kprintf("test");
 	
 	/* Write page to disk. */
 	kmemcpy(kpg, (void *)addr, PAGE_SIZE);
+	kprintf("test1");
 	n = bdev_write(SWAP_DEV, (void *)addr, PAGE_SIZE, off);
 	if (n != PAGE_SIZE)
 		goto error2;
@@ -286,6 +290,16 @@ PRIVATE struct
 
 PRIVATE int nbFramesAllocated = 0;
 
+PRIVATE void updateAge(int index){
+	struct pte *currentPage = getpte(curr_proc,frames[index].addr);
+	if(currentPage->accessed){
+		frames[i].age = 0;
+		currentPage->accessed=0;
+	}else{
+		frames[i].age++;
+	}
+}
+
 /**
  * @brief Allocates a page frame.
  * 
@@ -307,21 +321,12 @@ PRIVATE int allocf(void)
 	chosen = -1;
 	for (i = 0; i < NR_FRAMES; i++){
 
-		if(nbFramesUpdated==nbFramesAllocated){
-			if(foundEmpty){
-				goto alloc;
-			}
+		if(nbFramesUpdated==nbFramesAllocated && foundEmpty){ //Terminaison
+			goto alloc;
 		}
 
 		if(frames[i].count>0){ //If the frame is used
-			/* Update age */
-			struct pte *currentPage = getpte(curr_proc,frames[i].addr);
-			if(currentPage->accessed){
-				frames[i].age = 0;
-				currentPage->accessed=0;
-			}else{
-				frames[i].age++;
-			}
+			updateAge(i);
 			nbFramesUpdated++;
 		}
 
@@ -555,8 +560,14 @@ PUBLIC void freeupg(struct pte *pg)
 		kpanic("freeing user page twice");
 	
 	/* Free user page. */
-	if (--frames[i].count)
+	if (--frames[i].count){
 		frames[i].owner = 0;
+	}
+
+	if(frames[i].count==0){
+		nbFramesAllocated--;
+	}
+
 	kmemset(pg, 0, sizeof(struct pte));
 	tlb_flush();
 }
@@ -762,6 +773,7 @@ PUBLIC int vfault(addr_t addr)
 
 error2:
 	frames[frame].count = 0;
+	nbFramesAllocated--;
 error1:
 	unlockreg(reg);
 error0:
