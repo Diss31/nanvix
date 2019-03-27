@@ -303,8 +303,6 @@ PRIVATE int allocf(void)
 	int i;
 	/* Search for a free frame. */
 	if(compteur<NR_FRAMES){
-		
-		kprintf("%d", compteur);
 		for (i = 0; i < NR_FRAMES; i++)
 		{
 			/* Found it. */
