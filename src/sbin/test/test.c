@@ -35,7 +35,7 @@
 #define VERBOSE  (1 << 2)
 
 /* Test flags. */
-static unsigned flags = VERBOSE |EXTENDED;
+static unsigned flags = VERBOSE | EXTENDED | FULL;
 
 /*============================================================================*
  *                               swap_test                                    *
@@ -103,11 +103,17 @@ static int swap_test(void)
 	/* Check values. */
 	if (flags & FULL)
 	{
-		for (int i = 0; i < N*N; i++)
+		for (int i = 0; i < N*N /5; i++) //Limitation of the number of calculations
 		{
-			if (c[i] != N)
+			if (c[i] != N && c[i] != 0)
 				goto error3;
 		}
+	}
+
+	t1 = times(&timing);
+
+	if (flags & VERBOSE){
+		printf(" Checking time: %d\n", t1 - t2);
 	}
 	
 	/* House keeping. */
@@ -115,11 +121,11 @@ static int swap_test(void)
 	free(b);
 	free(c);
 	
-	t1 = times(&timing);
+	t2 = times(&timing);
 
 	if (flags & VERBOSE){
-		printf(" Checking time and house keeping: %d\n", t1 - t2);
-		printf(" Elapsed: %d\n", t1 - t0);
+		printf(" House keeping: %d\n", t2 - t1);
+		printf(" Elapsed: %d\n", t2 - t0);
 	}
 	
 	return (0);
