@@ -299,7 +299,7 @@ int time = 0 ;
  PUBLIC void update_plus_clear(){
   if(time == 0){
 	for (int i = 0; i < NR_FRAMES; i++)
- 	{		
+ 	{
  		struct pte* page = getpte(curr_proc, frames[i].addr);
  		page->accessed = 0;
  	}
@@ -315,7 +315,7 @@ PRIVATE int allocf(void)
  {
  	int i ;
 	int pagetoswap=-1;
-	#define HIGHER_PRIORITY(x, y) (x->accessed < y-> accessed || x->dirty < y->dirty)
+	#define HIGHER_PRIORITY(x, y) (x->accessed < y-> accessed || ((x->accessed==y->accessed)&&(x->dirty < y->dirty)))
 	#define SAME_PRIORITY(x, y) (x->accessed == y-> accessed && x->dirty == y->dirty)
 
 	for (i = 0; i < NR_FRAMES; i++){
