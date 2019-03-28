@@ -284,7 +284,8 @@ PRIVATE struct
 } frames[NR_FRAMES] = {{0, 0, 0},  };
 
 int index = 0; /* Index of the page */
-int compteur=0; /* Number of page frames */
+int framesCounter=0; /* Number of page frames */
+
 PRIVATE void search_next_valid_index(void){
 	do{
 		index = (index+1)%NR_FRAMES;
@@ -302,7 +303,7 @@ PRIVATE int allocf(void)
 {
 	int i;
 	/* Search for a free frame. */
-	if(compteur<NR_FRAMES){
+	if(framesCounter<NR_FRAMES){
 		for (i = 0; i < NR_FRAMES; i++)
 		{
 			/* Found it. */
@@ -334,7 +335,7 @@ PRIVATE int allocf(void)
 found:		
 
 	frames[i].count = 1;
-	compteur++;
+	framesCounter++;
 	return (i);
 }
 
@@ -524,8 +525,12 @@ PUBLIC void freeupg(struct pte *pg)
 		kpanic("freeing user page twice");
 	
 	/* Free user page. */
-	if (--frames[i].count)
+	if (--frames[i].count){
 		frames[i].owner = 0;
+	}
+	if(frames[i].count==0){
+		framesCounter--;
+	}
 	kmemset(pg, 0, sizeof(struct pte));
 	tlb_flush();
 }
@@ -731,6 +736,7 @@ PUBLIC int vfault(addr_t addr)
 
 error2:
 	frames[frame].count = 0;
+	framesCounter--;
 error1:
 	unlockreg(reg);
 error0:
