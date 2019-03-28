@@ -45,7 +45,7 @@
  * @returns The requested page directory entry.
  */
 #define getpde(p, a) \
-	(&(p)->pgdir[PGTAB(a)])
+(&(p)->pgdir[PGTAB(a)])
 
 /**
  * @brief Gets a page table entry of a process.
@@ -56,7 +56,7 @@
  * @returns The requested page table entry.
  */
 #define getpte(p, a) \
-	(&((struct pte *)((getpde(p, a)->frame << PAGE_SHIFT) + KBASE_VIRT))[PG(a)])
+(&((struct pte *)((getpde(p, a)->frame << PAGE_SHIFT) + KBASE_VIRT))[PG(a)])
 
 
 /*============================================================================*
@@ -141,11 +141,11 @@ PRIVATE int swap_out(struct process *proc, addr_t addr)
 	putkpg(kpg);
 	return (0);
 
-error2:
+	error2:
 	bitmap_clear(swap.bitmap, blk);
-error1:
+	error1:
 	putkpg(kpg);
-error0:
+	error0:
 	return (-1);
 }
 
@@ -195,9 +195,9 @@ PRIVATE int swap_in(unsigned frame, addr_t addr)
 	putkpg(kpg);
 	return (0);
 
-error1:
+	error1:
 	putkpg(kpg);
-error0:
+	error0:
 	return (-1);
 }
 
@@ -234,7 +234,7 @@ PUBLIC void *getkpg(int clean)
 
 	return (NULL);
 
-found:
+	found:
 
 	/* Set page as used. */
 	kpg = (void *)(KPOOL_VIRT + (i << PAGE_SHIFT));
@@ -279,10 +279,28 @@ PUBLIC void putkpg(void *kpg)
 PRIVATE struct
 {
 	unsigned count; /**< Reference count.     */
-	unsigned age;   /**< Age.                 */
 	pid_t owner;    /**< Page owner.          */
 	addr_t addr;    /**< Address of the page. */
-} frames[NR_FRAMES] = {{0, 0, 0, 0},  };
+} frames[NR_FRAMES] = {{0, 0, 0},  };
+
+
+#define CLOCK_TICK 20
+
+PRIVATE int frames_timer = 0 ;
+
+PUBLIC void update_frames_timer(){
+	if(frames_timer == 0){
+		for (int i = 0; i < NR_FRAMES; i++)
+		{
+			struct pte* page = getpte(curr_proc, frames[i].addr);
+			page->accessed = 0;
+		}
+		frames_timer = CLOCK_TICK ;
+	}else{
+		frames_timer--;
+	}
+
+}
 
 /**
  * @brief Allocates a page frame.
@@ -290,77 +308,66 @@ PRIVATE struct
  * @returns Upon success, the number of the frame is returned. Upon failure, a
  *          negative number is returned instead.
  */
-
-
-
-
- #define CLOCK_TICK 20
-int time = 0 ;
- PUBLIC void update_plus_clear(){
-  if(time == 0){
-	for (int i = 0; i < NR_FRAMES; i++)
- 	{
- 		struct pte* page = getpte(curr_proc, frames[i].addr);
- 		page->accessed = 0;
- 	}
-	time = CLOCK_TICK ;
-  }
-  else{
-	 time--;
-  }
-
-}
-
 PRIVATE int allocf(void)
- {
- 	int i ;
-	int pagetoswap=-1;
+{
+	int i ;
+	int pageToSwap= -1;
+
+	/* Return true if x has a highter priority */
 	#define HIGHER_PRIORITY(x, y) (x->accessed < y-> accessed || ((x->accessed==y->accessed)&&(x->dirty < y->dirty)))
+	/* Return true if x and y have the same priority */
 	#define SAME_PRIORITY(x, y) (x->accessed == y-> accessed && x->dirty == y->dirty)
 
 	for (i = 0; i < NR_FRAMES; i++){
 
- 		/* Found it. */
- 		if (frames[i].count == 0 )
+ 		/* Found an empty frame */
+		if (frames[i].count == 0 ){
 			goto found;
+		}
 
+		/* Else */
 		if(frames[i].owner == curr_proc->pid) {
-			if (frames[i].count > 1)
+			/* Don't touch at sharing frame */
+			if (frames[i].count > 1){
 				continue;
+			}
 
+			/* We compare the priories of pageToSwap and actualPage */
 			addr_t addr = (frames[i].addr) & (PAGE_MASK);
 
-	 		struct pte *page_actuel = getpte(curr_proc, addr);
-	 		if (pagetoswap < 0){
-	 			pagetoswap=i;
-	 		}
-	 		else{
-				addr_t addrtoswap = (frames[pagetoswap].addr) & (PAGE_MASK);
-	 			struct pte *page_comparee = getpte(curr_proc, addrtoswap);
-	 			if (HIGHER_PRIORITY(page_actuel,page_comparee)){
-	 				pagetoswap = i;
-	 			}
-	 			else if(SAME_PRIORITY(page_actuel,page_comparee)){
-	 				if(krand()%2 == 0){
-	 					pagetoswap=i;
-	 				}
-	 			}
-	 		}
+			struct pte *actualPage = getpte(curr_proc, addr);
+			if (pageToSwap < 0){
+				pageToSwap=i;
+			}else{
+				addr_t addrToSwap = (frames[pageToSwap].addr) & (PAGE_MASK);
+				struct pte *pteToSwap = getpte(curr_proc, addrToSwap);
+				if (HIGHER_PRIORITY(actualPage,pteToSwap)){
+					pageToSwap = i;
+				}
+				else if(SAME_PRIORITY(actualPage,pteToSwap)){
+					if(krand()%2 == 0){
+						pageToSwap=i;
+					}
+				}
+			}
 		}
 	}
 
-	if (pagetoswap < 0)
+	/* If no frame has benn selected, rise an error */
+	if (pageToSwap < 0){
 		return (-1);
-/* Swap page out. */
-	if (swap_out(curr_proc, frames[i=pagetoswap].addr))
+	}
+
+	/* Swap page out. */
+	if (swap_out(curr_proc, frames[i=pageToSwap].addr)){
 		return (-1);
+	}
 
- found:
- 	frames[i].age = ticks;
- 	frames[i].count = 1;
+found:
+	frames[i].count = 1;
 
- 	return (i);
- }
+	return (i);
+}
 
 /**
  * @brief Copies a page.
@@ -571,15 +578,15 @@ PUBLIC void markpg(struct pte *pg, int mark)
 	{
 		/* Demand fill. */
 		case PAGE_FILL:
-			pg->fill = 1;
-			pg->zero = 0;
-			break;
+		pg->fill = 1;
+		pg->zero = 0;
+		break;
 
 		/* Demand zero. */
 		case PAGE_ZERO:
-			pg->fill = 0;
-			pg->zero = 1;
-			break;
+		pg->fill = 0;
+		pg->zero = 1;
+		break;
 	}
 }
 
@@ -610,8 +617,8 @@ PUBLIC void linkupg(struct pte *upg1, struct pte *upg2)
 	/* In-disk page. */
 	else
 	{
-		 i = upg1->frame;
-		 swap.count[i]++;
+		i = upg1->frame;
+		swap.count[i]++;
 	}
 
 	kmemcpy(upg2, upg1, sizeof(struct pte));
@@ -665,9 +672,9 @@ PUBLIC int crtpgdir(struct process *proc)
 
 	return (0);
 
-err1:
+	err1:
 	putkpg(pgdir);
-err0:
+	err0:
 	return (-1);
 }
 
@@ -721,8 +728,8 @@ PUBLIC int vfault(addr_t addr)
 	}
 
 	pg = (reg->flags & REGION_DOWNWARDS) ?
-		&reg->pgtab[REGION_PGTABS-(PGTAB(preg->start)-PGTAB(addr))-1][PG(addr)]:
-		&reg->pgtab[PGTAB(addr) - PGTAB(preg->start)][PG(addr)];
+	&reg->pgtab[REGION_PGTABS-(PGTAB(preg->start)-PGTAB(addr))-1][PG(addr)]:
+	&reg->pgtab[PGTAB(addr) - PGTAB(preg->start)][PG(addr)];
 
 	/* Clear page. */
 	if (pg->zero)
@@ -753,11 +760,11 @@ PUBLIC int vfault(addr_t addr)
 	unlockreg(reg);
 	return (0);
 
-error2:
+	error2:
 	frames[frame].count = 0;
-error1:
+	error1:
 	unlockreg(reg);
-error0:
+	error0:
 	return (-1);
 }
 /**
@@ -785,8 +792,8 @@ PUBLIC int pfault(addr_t addr)
 	lockreg(reg = preg->reg);
 
 	pg = (reg->flags & REGION_DOWNWARDS) ?
-		&reg->pgtab[REGION_PGTABS-(PGTAB(preg->start)-PGTAB(addr))-1][PG(addr)]:
-		&reg->pgtab[PGTAB(addr) - PGTAB(preg->start)][PG(addr)];
+	&reg->pgtab[REGION_PGTABS-(PGTAB(preg->start)-PGTAB(addr))-1][PG(addr)]:
+	&reg->pgtab[PGTAB(addr) - PGTAB(preg->start)][PG(addr)];
 
 	/* Copy on write not enabled. */
 	if (!pg->cow)
@@ -818,8 +825,8 @@ PUBLIC int pfault(addr_t addr)
 	unlockreg(reg);
 	return(0);
 
-error1:
+	error1:
 	unlockreg(reg);
-error0:
+	error0:
 	return (-1);
 }

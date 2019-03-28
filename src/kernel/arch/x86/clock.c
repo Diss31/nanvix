@@ -44,8 +44,8 @@ PRIVATE void do_clock()
 	curr_proc->utime++;
 
 
-  // need a fonction
-	update_plus_clear();
+  	// Update timer for NRU
+	update_frames_timer();
 
 	/* Give up processor time. */
 	if (--curr_proc->counter == 0)
