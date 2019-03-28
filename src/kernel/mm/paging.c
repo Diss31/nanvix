@@ -106,8 +106,6 @@ PRIVATE int swap_out(struct process *proc, addr_t addr)
 	off_t off;      /* Offset in swap device.        */
 	ssize_t n;      /* # bytes written.              */
 	void *kpg;      /* Kernel page used for copying. */
-
-	kprintf("SWAP : proc pid %d  addr %d",proc->pid, addr);
 	
 	addr &= PAGE_MASK;
 	pg = getpte(proc, addr);
@@ -127,11 +125,8 @@ PRIVATE int swap_out(struct process *proc, addr_t addr)
 	off = HDD_SIZE + blk*PAGE_SIZE;
 	bitmap_set(swap.bitmap, blk);
 
-	kprintf("test");
-	
 	/* Write page to disk. */
 	kmemcpy(kpg, (void *)addr, PAGE_SIZE);
-	kprintf("test1");
 	n = bdev_write(SWAP_DEV, (void *)addr, PAGE_SIZE, off);
 	if (n != PAGE_SIZE)
 		goto error2;
@@ -293,10 +288,10 @@ PRIVATE int nbFramesAllocated = 0;
 PRIVATE void updateAge(int index){
 	struct pte *currentPage = getpte(curr_proc,frames[index].addr);
 	if(currentPage->accessed){
-		frames[i].age = 0;
+		frames[index].age = 0;
 		currentPage->accessed=0;
 	}else{
-		frames[i].age++;
+		frames[index].age++;
 	}
 }
 
@@ -321,7 +316,9 @@ PRIVATE int allocf(void)
 	chosen = -1;
 	for (i = 0; i < NR_FRAMES; i++){
 
-		if(nbFramesUpdated==nbFramesAllocated && foundEmpty){ //Terminaison
+		/* If we have updated all the active frames and find an empty one,
+		we can leave*/
+		if(nbFramesUpdated==nbFramesAllocated && foundEmpty){
 			goto alloc;
 		}
 
@@ -330,46 +327,51 @@ PRIVATE int allocf(void)
 			nbFramesUpdated++;
 		}
 
-		/* If an empty frame was found, just update the frames ages*/
+		/* If an empty frame was already found, just update the frames ages*/
 		if(foundEmpty){
 			continue;
-		}
 
-		/* If there is a free frame. */ 
-		if (frames[i].count == 0){
-			foundEmpty=1;
-			chosen=i;
-		
-		/* Else, apply local page replacement policy. */
-		} else if (frames[i].owner == curr_proc->pid){
-
-			/* Skip shared pages. */
-			if (frames[i].count > 1)
-				continue;
+		/* Else, we search the best position for the new frame */
+		} else {
+			/* If there is an available free frame */ 
+			if (frames[i].count == 0){
+				foundEmpty=1;
+				chosen=i;
 			
-			/* Oldest page found. */
-			if ((chosen < 0) || (OLDEST(chosen,i))){
-				chosen = i;
+			/* Else, apply local page replacement policy. */
+			} else if (frames[i].owner == curr_proc->pid){
+
+				/* Skip shared pages. */
+				if (frames[i].count > 1)
+					continue;
+				
+				/* Oldest page found. */
+				if ((chosen < 0) || (OLDEST(chosen,i))){
+					chosen = i;
+				}
 			}
 		}
 	}
 	
-	/* No frame found. */
+	/* If no frame found, error. */
 	if (chosen < 0){
 		return (-1);
 	}
 
-	
-	/* Swap page out if we didn't find an empty frame. */
-	if (!foundEmpty && swap_out(curr_proc, frames[chosen].addr))
-		return (-1);	
-
 alloc:
+
+	if(!foundEmpty){
+		/* Swap page out if we didn't find an empty frame. */
+		if(swap_out(curr_proc, frames[chosen].addr)){
+			return -1;
+		}
+	} else{
+		// A empty frame is allocated
+		nbFramesAllocated++;
+	}	
+
 	frames[chosen].age = 0;
 	frames[chosen].count = 1;
-	if(foundEmpty){
-		nbFramesAllocated++;
-	} 
 	
 	return (chosen);
 }
