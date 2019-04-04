@@ -302,7 +302,6 @@ PRIVATE int allocf(void)
 {
 	int i; 
 
-	/* A AMELIORER */
 	/* Search for a free frame. */
 	for (i = 0; i < NR_FRAMES; i++)
 	{
