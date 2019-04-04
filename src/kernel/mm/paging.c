@@ -284,7 +284,7 @@ PRIVATE struct
 } frames[NR_FRAMES] = {{0, 0, 0},  };
 
 
-#define CLOCK_TICK 100
+#define CLOCK_TICK 20
 
 PRIVATE int frames_timer = 0 ;
 
@@ -314,7 +314,8 @@ PRIVATE int allocf(void)
 	int pageToSwap= -1;
 
 	/* Return true if x has a highter priority */
-	#define HIGHER_PRIORITY(x, y) (x->accessed < y-> accessed || ((x->accessed==y->accessed)&&(x->dirty < y->dirty)))
+	#define HIGHER_PRIORITY0(x, y) ((x->accessed==y->accessed)&& (x->dirty==0 && y->dirty==1))
+	#define HIGHER_PRIORITY1(x, y) (x->accessed==0 && y->accessed==1)
 	/* Return true if x and y have the same priority */
 	#define SAME_PRIORITY(x, y) (x->accessed == y-> accessed && x->dirty == y->dirty)
 
@@ -341,7 +342,10 @@ PRIVATE int allocf(void)
 			}else{
 				addr_t addrToSwap = (frames[pageToSwap].addr) & (PAGE_MASK);
 				struct pte *pteToSwap = getpte(curr_proc, addrToSwap);
-				if (HIGHER_PRIORITY(actualPage,pteToSwap)){
+				if (HIGHER_PRIORITY0(actualPage,pteToSwap)){
+					pageToSwap = i;
+				}
+				if (HIGHER_PRIORITY1(actualPage,pteToSwap)){
 					pageToSwap = i;
 				}
 				else if(SAME_PRIORITY(actualPage,pteToSwap)){
