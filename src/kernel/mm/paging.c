@@ -314,8 +314,8 @@ PRIVATE int allocf(void)
 	int pageToSwap= -1;
 
 	/* Return true if x has a highter priority */
-	#define HIGHER_PRIORITY0(x, y) ((x->accessed==y->accessed)&& (x->dirty==0 && y->dirty==1))
-	#define HIGHER_PRIORITY1(x, y) (x->accessed==0 && y->accessed==1)
+	#define HIGHER_PRIORITY0(x, y) ((x->accessed==y->accessed)&& (!x->dirty && y->dirty))
+	#define HIGHER_PRIORITY1(x, y) (!x->accessed && y->accessed )
 	/* Return true if x and y have the same priority */
 	#define SAME_PRIORITY(x, y) (x->accessed == y-> accessed && x->dirty == y->dirty)
 
