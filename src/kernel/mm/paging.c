@@ -294,7 +294,7 @@ PRIVATE struct
 
 
 
- #define CLOCK_TICK 20
+ #define CLOCK_TICK 60
 int time = 0 ;
  PUBLIC void update_plus_clear(){
   if(time == 0){
@@ -315,7 +315,8 @@ PRIVATE int allocf(void)
  {
  	int i ;
 	int pagetoswap=-1;
-	#define HIGHER_PRIORITY(x, y) (x->accessed < y-> accessed || ((x->accessed==y->accessed)&&(x->dirty < y->dirty)))
+	#define HIGHER_PRIORITY0(x, y) (x->accessed==0 && y->accessed==1)
+	#define HIGHER_PRIORITY1(x, y) ((x->accessed==y->accessed)&& (x->dirty==0 && y->dirty==1))
 	#define SAME_PRIORITY(x, y) (x->accessed == y-> accessed && x->dirty == y->dirty)
 
 	for (i = 0; i < NR_FRAMES; i++){
@@ -337,7 +338,10 @@ PRIVATE int allocf(void)
 	 		else{
 				addr_t addrtoswap = (frames[pagetoswap].addr) & (PAGE_MASK);
 	 			struct pte *page_comparee = getpte(curr_proc, addrtoswap);
-	 			if (HIGHER_PRIORITY(page_actuel,page_comparee)){
+	 			if (HIGHER_PRIORITY0(page_actuel,page_comparee)){
+	 				pagetoswap = i;
+	 			}
+				else if (HIGHER_PRIORITY1(page_actuel,page_comparee)){
 	 				pagetoswap = i;
 	 			}
 	 			else if(SAME_PRIORITY(page_actuel,page_comparee)){
