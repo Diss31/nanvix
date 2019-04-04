@@ -284,7 +284,7 @@ PRIVATE struct
 } frames[NR_FRAMES] = {{0, 0, 0},  };
 
 
-#define CLOCK_TICK 20
+#define CLOCK_TICK 100
 
 PRIVATE int frames_timer = 0 ;
 
@@ -310,19 +310,16 @@ PUBLIC void update_frames_timer(){
  */
 PRIVATE int allocf(void)
 {
-	int i ;
 	int pageToSwap= -1;
+	int pageToSwapPriority;
 
-	/* Return true if x has a highter priority */
-	#define HIGHER_PRIORITY0(x, y) ((x->accessed==y->accessed)&& (!x->dirty && y->dirty))
-	#define HIGHER_PRIORITY1(x, y) (!x->accessed && y->accessed )
-	/* Return true if x and y have the same priority */
-	#define SAME_PRIORITY(x, y) (x->accessed == y-> accessed && x->dirty == y->dirty)
+	#define PRIORITY(x) (x->accessed*2 + x->dirty)
 
-	for (i = 0; i < NR_FRAMES; i++){
+	for (int i = 0; i < NR_FRAMES; i++){
 
  		/* Found an empty frame */
 		if (frames[i].count == 0 ){
+			pageToSwap = i;
 			goto found;
 		}
 
@@ -333,26 +330,28 @@ PRIVATE int allocf(void)
 				continue;
 			}
 
-			/* We compare the priories of pageToSwap and actualPage */
-			addr_t addr = (frames[i].addr) & (PAGE_MASK);
-
-			struct pte *actualPage = getpte(curr_proc, addr);
 			if (pageToSwap < 0){
-				pageToSwap=i;
-			}else{
+				pageToSwap = i;
 				addr_t addrToSwap = (frames[pageToSwap].addr) & (PAGE_MASK);
 				struct pte *pteToSwap = getpte(curr_proc, addrToSwap);
-				if (HIGHER_PRIORITY0(actualPage,pteToSwap)){
+				pageToSwapPriority = PRIORITY(pteToSwap);
+			}else{
+
+				/* We compare the priories of pageToSwap and the actual page */
+				addr_t addr = (frames[i].addr) & (PAGE_MASK);
+				struct pte *actualPte = getpte(curr_proc, addr);
+				int actualPagePriority = PRIORITY(actualPte);
+
+				if(actualPagePriority<pageToSwapPriority){
 					pageToSwap = i;
-				}
-				if (HIGHER_PRIORITY1(actualPage,pteToSwap)){
-					pageToSwap = i;
-				}
-				else if(SAME_PRIORITY(actualPage,pteToSwap)){
+					pageToSwapPriority = actualPagePriority;
+				}else if(actualPagePriority==pageToSwapPriority){
 					if(krand()%2 == 0){
-						pageToSwap=i;
+						pageToSwap = i;
+						pageToSwapPriority = actualPagePriority;
 					}
 				}
+
 			}
 		}
 	}
@@ -363,14 +362,14 @@ PRIVATE int allocf(void)
 	}
 
 	/* Swap page out. */
-	if (swap_out(curr_proc, frames[i=pageToSwap].addr)){
+	if (swap_out(curr_proc, frames[pageToSwap].addr)){
 		return (-1);
 	}
 
-found:
-	frames[i].count = 1;
+	found:
+	frames[pageToSwap].count = 1;
 
-	return (i);
+	return pageToSwap;
 }
 
 /**
