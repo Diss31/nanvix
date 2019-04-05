@@ -284,7 +284,7 @@ PRIVATE struct
 } frames[NR_FRAMES] = {{0, 0, 0},  };
 
 
-#define CLOCK_TICK 100
+#define CLOCK_TICK 140
 
 PRIVATE int frames_timer = 0 ;
 
